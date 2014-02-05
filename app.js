@@ -14,6 +14,8 @@ var events = require('events');
 var sqlite3 = require('sqlite3').verbose();
 var vidStreamer = require("vid-streamer");
 
+var Acl = require('./modules/acl').Acl;
+
 var ElsaaEventEmitter = function () {
     events.EventEmitter.call(this);
 };
@@ -21,15 +23,19 @@ util.inherits(ElsaaEventEmitter, events.EventEmitter);
 var ElsaaEventHandler = new ElsaaEventEmitter();
 
 ElsaaEventHandler.on('elsaa.init.done', function () {
+    console.log('Init done...');
     initDatabase();
 });
 ElsaaEventHandler.on('elsaa.database.done', function () {
+    console.log('Database initilaized...');
     initRoutes();
 });
 ElsaaEventHandler.on('elsaa.routes.done', function () {
+    console.log('Routes initialized...');
     initServer();
 });
 ElsaaEventHandler.on('elsaa.server.done', function () {
+    console.log('Server ready...');
     startElsaa();
 });
 
@@ -135,6 +141,7 @@ function initServer() {
         initWebsocket(websocketHttps, serverHttps, true);
         console.log(util.format('Secure WebServer listening on port: %d', app.get('port-https')));
     });
+    ElsaaEventHandler.emit('elsaa.server.done');
 }
 
 function initDatabase() {
@@ -144,6 +151,12 @@ function initDatabase() {
             ElsaaEventHandler.emit('elsaa.database.done');
         }
     });
+}
+
+function startElsaa() {
+    console.log("Starting ELSAA...");
+    var acl = new Acl(db);
+    db.close();
 }
 
 init();
