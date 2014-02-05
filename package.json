@@ -1,14 +1,27 @@
 {
     "name": "elsaa",
+    "description": "Jade template engine",
     "version": "0.0.1",
-    "private": true,
     "scripts": {
         "start": "node app.js"
+    },
+    "author": {
+        "name": "David Onofer",
+        "email": "david.onofer@gmail.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/welsen/elsaa"
+    },
+    "bugs": {
+        "url": "https://github.com/welsen/elsaa/issues"
     },
     "dependencies": {
         "express": "3.4.8",
         "vid-streamer": "*",
         "sqlite3": "*",
-        "jade": "*"
-    }
+        "jade": "*",
+        "socket.io": "*"
+    },
+    "readmeFilename": "README.md"
 }
