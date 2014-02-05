@@ -1,5 +1,7 @@
 extends layout
 
 block content
-  h1= title
-  p Welcome to #{title}
+    div(style='width: 720px; height: 480px')
+        video#vplayer.video-js.vjs-default-skin(controls=true, preload='none', data-setup='{}', width='640', height='320')
+            source(src='videos/halo4.mp4', type='video/mp4')
+            track(kind='subtitles', src='subs/halo4.vtt', srclang='en', label='English')

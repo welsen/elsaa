@@ -9,6 +9,17 @@ var user = require('./routes/user');
 var http = require('http');
 var path = require('path');
 
+var vidStreamer = require("vid-streamer");
+
+vidStreamer.settings({
+	"mode": "development",
+	"forceDownload": false,
+	"random": false,
+	"rootFolder": path.join(__dirname, 'public', 'videos'),
+	"rootPath": "videos/",
+	"server": "VidStreamer.js/0.1.4"
+});
+
 var app = express();
 
 // all environments
@@ -30,6 +41,8 @@ if ('development' == app.get('env')) {
 
 app.get('/', routes.index);
 app.get('/users', user.list);
+
+app.get('/videos/', vidStreamer);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

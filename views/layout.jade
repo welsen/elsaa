@@ -2,6 +2,41 @@ doctype html
 html
   head
     title= title
+    link(rel='stylesheet', href='//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/css/bootstrap-combined.no-icons.min.css')
+    link(rel='stylesheet', href='//netdna.bootstrapcdn.com/font-awesome/3.0.2/css/font-awesome.css')
+    link(rel='stylesheet', href='//vjs.zencdn.net/4.2/video-js.css')
     link(rel='stylesheet', href='/stylesheets/style.css')
+    script(src='//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js')
+    script(src='//netdna.bootstrapcdn.com/twitter-bootstrap/2.3.1/js/bootstrap.min.js')
+    script(src='//vjs.zencdn.net/4.2/video.js')
+    style.
+        body { margin: 0; padding: 0; }
+        .vjs-default-skin { color: #fff; }
+        .vjs-default-skin .vjs-play-progress,
+        .vjs-default-skin .vjs-volume-level { background-color: #f00; }
+        .vjs-default-skin .vjs-control-bar { font-size: 100%; }
+        .vjs-default-skin .vjs-text-track {display: none; font-size: 1.4em; text-align: center; margin-bottom: .1em; background-color: #000; background-color: rgba(0,0,0,0); }
+        .vjs-default-skin .vjs-tt-cue { font-size: 180%; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #000; background: transparent; color: #fff; }
+        .vjs-default-skin .vjs-big-play-button { left: 0; position: relative; top: 37%; margin: 0 auto; }
+        .vjs-default-skin .vjs-subtitles-button:before { content: "\e008"; }
+    script.
+        $(function() {
+            videojs("vplayer", {"height": "480", "width": "720"}, function() {
+                    var vplayer = this;
+                    var aspectRatio = 9 / 16; // Make up an aspect ratio
+
+                    function resizeVideoJS() {
+                        var width = document.getElementById(vplayer.id()).parentElement.offsetWidth;
+                        vplayer.width(width).height(width * aspectRatio);
+                    }
+
+                    resizeVideoJS();
+                    window.onresize = resizeVideoJS;
+                });
+        });
   body
     block content
+    script(type='text/javascript').
+        document.createElement('video');
+        document.createElement('audio');
+
