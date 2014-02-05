@@ -1,8 +1,47 @@
 body {
-  padding: 50px;
-  font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
+    font: 14px"Lucida Grande", Helvetica, Arial, sans-serif;
+}
+a {
+    color: #00B7FF;
+}
+body {
+    margin: 0;
+    padding: 0;
 }
 
-a {
-  color: #00B7FF;
+/*###################################################################################################*/
+/*## Video JS #######################################################################################*/
+/*###################################################################################################*/
+.vjs-default-skin {
+    color: #fff;
+}
+.vjs-default-skin .vjs-play-progress,
+.vjs-default-skin .vjs-volume-level {
+    background-color: #f00;
+}
+.vjs-default-skin .vjs-control-bar {
+    font-size: 100%;
+}
+.vjs-default-skin .vjs-text-track {
+    display: none;
+    font-size: 1.4em;
+    text-align: center;
+    margin-bottom: .1em;
+    background-color: #000;
+    background-color: rgba(0, 0, 0, 0);
+}
+.vjs-default-skin .vjs-tt-cue {
+    font-size: 180%;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 6px #000;
+    background: transparent;
+    color: #fff;
+}
+.vjs-default-skin .vjs-big-play-button {
+    left: 0;
+    position: relative;
+    top: 37%;
+    margin: 0 auto;
+}
+.vjs-default-skin .vjs-subtitles-button:before {
+    content: "\e008";
 }
