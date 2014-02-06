@@ -1,4 +1,6 @@
 var Acl = (function () {
+    'use strict';
+
     function Acl(db) {
         this.DB = db;
         this.UsersTable = 'ACL_USERS';
@@ -10,10 +12,12 @@ var Acl = (function () {
 
         var self = this;
 
-        self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.UsersTable, function (error, row) {
-            if (error === null) {
-                if (row === undefined) {
-                    self.DB.run("CREATE TABLE ACL_USERS(\
+        self.serialize(function () {
+            self.DB.parallelize(function () {
+                self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.UsersTable, function (error, row) {
+                    if (error === null) {
+                        if (row === undefined) {
+                            self.DB.run("CREATE TABLE ACL_USERS(\
                             ID          INTEGER     PRIMARY KEY AUTOINCREMENT,\
                             USERNAME    TEXT        NOT NULL,\
                             PASSWORD    TEXT        NOT NULL,\
@@ -24,45 +28,45 @@ var Acl = (function () {
                             MODIFIED    INTEGER     NOT NULL,\
                             ACTIVE      BOOLEAN     NOT NULL\
                         );");
-                }
-            }
-        });
-        self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.RolesTable, function (error, row) {
-            if (error === null) {
-                if (row === undefined) {
-                    self.DB.run("CREATE TABLE ACL_ROLES(\
+                        }
+                    }
+                });
+                self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.RolesTable, function (error, row) {
+                    if (error === null) {
+                        if (row === undefined) {
+                            self.DB.run("CREATE TABLE ACL_ROLES(\
                             ID          INTEGER     PRIMARY KEY AUTOINCREMENT,\
                             ROLENAME    TEXT        NOT NULL,\
                             DESCRIPTION TEXT        NOT NULL,\
-                            LEFT        INTEGER     NOT NULL,\
-                            RIGHT       INTEGER     NOT NULL,\
+                            LEFT        INTEGER     NULL,\
+                            RIGHT       INTEGER     NULL,\
                             CREATED     INTEGER     NOT NULL,\
                             MODIFIED    INTEGER     NOT NULL,\
                             ACTIVE      BOOLEAN     NOT NULL\
                         );");
-                }
-            }
-        });
-        self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.PermissionsTable, function (error, row) {
-            if (error === null) {
-                if (row === undefined) {
-                    self.DB.run("CREATE TABLE ACL_PERMISSIONS(\
+                        }
+                    }
+                });
+                self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.PermissionsTable, function (error, row) {
+                    if (error === null) {
+                        if (row === undefined) {
+                            self.DB.run("CREATE TABLE ACL_PERMISSIONS(\
                             ID          INTEGER     PRIMARY KEY AUTOINCREMENT,\
-                            PERMISSON   TEXT        NOT NULL,\
+                            PERMISSION  TEXT        NOT NULL,\
                             DESCRIPTION TEXT        NOT NULL,\
-                            LEFT        INTEGER     NOT NULL,\
-                            RIGHT       INTEGER     NOT NULL,\
+                            LEFT        INTEGER     NULL,\
+                            RIGHT       INTEGER     NULL,\
                             CREATED     INTEGER     NOT NULL,\
                             MODIFIED    INTEGER     NOT NULL,\
                             ACTIVE      BOOLEAN     NOT NULL\
                         );");
-                }
-            }
-        });
-        self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.RolePermissionsTable, function (error, row) {
-            if (error === null) {
-                if (row === undefined) {
-                    self.DB.run("CREATE TABLE ACL_ROLEPERMISSIONS(\
+                        }
+                    }
+                });
+                self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.RolePermissionsTable, function (error, row) {
+                    if (error === null) {
+                        if (row === undefined) {
+                            self.DB.run("CREATE TABLE ACL_ROLEPERMISSIONS(\
                             ROLEID       INTEGER     NOT NULL,\
                             PERMISSIONID INTEGER     NOT NULL,\
                             CREATED      INTEGER     NOT NULL,\
@@ -70,13 +74,13 @@ var Acl = (function () {
                             ACTIVE       BOOLEAN     NOT NULL,\
                             PRIMARY KEY (ROLEID, PERMISSIONID)\
                         );");
-                }
-            }
-        });
-        self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.UserRolesTable, function (error, row) {
-            if (error === null) {
-                if (row === undefined) {
-                    self.DB.run("CREATE TABLE ACL_USERROLES(\
+                        }
+                    }
+                });
+                self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.UserRolesTable, function (error, row) {
+                    if (error === null) {
+                        if (row === undefined) {
+                            self.DB.run("CREATE TABLE ACL_USERROLES(\
                             USERID      INTEGER     NOT NULL,\
                             ROLEID      INTEGER     NOT NULL,\
                             CREATED     INTEGER     NOT NULL,\
@@ -84,8 +88,10 @@ var Acl = (function () {
                             ACTIVE      BOOLEAN     NOT NULL,\
                             PRIMARY KEY (USERID, ROLEID)\
                         );");
-                }
-            }
+                        }
+                    }
+                });
+            });
         });
     }
 

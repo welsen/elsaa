@@ -58,7 +58,7 @@ var serverHttps = null;
 var websocketHttp = null;
 var websocketHttps = null;
 var db = null;
-var auth = null;
+var acl = null;
 
 var vidStreamerOptions = {
     "mode": "development",
@@ -145,7 +145,7 @@ function initServer() {
 }
 
 function initDatabase() {
-    db = new sqlite3.Database(dbPath, function (error) {
+    db = global.db = new sqlite3.Database(dbPath, function (error) {
         if (error === null) {
             console.log('Connection with Database established');
             ElsaaEventHandler.emit('elsaa.database.done');
@@ -155,7 +155,11 @@ function initDatabase() {
 
 function startElsaa() {
     console.log("Starting ELSAA...");
-    var acl = new Acl(db);
+    acl = global.acl = new Acl(db);
+
+    // acl.GetRole(1, console.log);
+    acl.AddRole('curse admin', '', 2);
+
     db.close();
 }
 

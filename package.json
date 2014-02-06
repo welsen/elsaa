@@ -21,7 +21,8 @@
         "vid-streamer": "*",
         "sqlite3": "*",
         "jade": "*",
-        "socket.io": "*"
+        "socket.io": "*",
+        "ldapjs": "*"
     },
     "readmeFilename": "README.md"
 }
