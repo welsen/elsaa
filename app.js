@@ -147,6 +147,13 @@ function initServer() {
 function initDatabase() {
     db = global.db = new sqlite3.Database(dbPath, function (error) {
         if (error === null) {
+            db.get("select 'SQLite Version: ' || sqlite_version() as version;", function(error, row) {
+                if (error === null) {
+                    if (row !== undefined) {
+                        console.log(row.version);
+                    }
+                }
+            });
             console.log('Connection with Database established');
             ElsaaEventHandler.emit('elsaa.database.done');
         }
@@ -157,8 +164,7 @@ function startElsaa() {
     console.log("Starting ELSAA...");
     acl = global.acl = new Acl(db);
 
-    // acl.GetRole(1, console.log);
-    acl.AddRole('curse admin', '', 2);
+    acl.GetRolesUnder(0);
 
     db.close();
 }
