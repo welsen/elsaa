@@ -20,7 +20,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
@@ -37,7 +37,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
@@ -59,12 +59,12 @@ var Acl = (function () {
                         if (error == null) {
                             callback();
                         } else {
-                            console.log(error);
+                            console.error(error);
                         }
                     });
                 }
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
@@ -87,7 +87,7 @@ var Acl = (function () {
             if (error == null) {
                 callback(rows);
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
@@ -105,7 +105,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
@@ -122,7 +122,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
@@ -144,12 +144,12 @@ var Acl = (function () {
                         if (error == null) {
                             callback();
                         } else {
-                            console.log(error);
+                            console.error(error);
                         }
                     });
                 }
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
@@ -172,7 +172,7 @@ var Acl = (function () {
             if (error == null) {
                 callback(rows);
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
@@ -197,7 +197,7 @@ var Acl = (function () {
                     if (error == null) {
                         callback();
                     } else {
-                        console.log(error);
+                        console.error(error);
                     }
                 });
             }
@@ -216,7 +216,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
@@ -241,7 +241,7 @@ var Acl = (function () {
                     if (error == null) {
                         callback();
                     } else {
-                        console.log(error);
+                        console.error(error);
                     }
                 });
             }
@@ -260,7 +260,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
@@ -279,7 +279,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.log(error);
+                console.error(error);
             }
         });
     };
