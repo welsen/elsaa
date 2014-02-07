@@ -147,15 +147,15 @@ function initServer() {
 function initDatabase() {
     db = global.db = new sqlite3.Database(dbPath, function (error) {
         if (error === null) {
-            db.get("select 'SQLite Version: ' || sqlite_version() as version;", function(error, row) {
+            db.get("select 'SQLite Version: ' || sqlite_version() as version;", function (error, row) {
                 if (error === null) {
                     if (row !== undefined) {
                         console.log(row.version);
+                        console.log('Connection with Database established');
+                        ElsaaEventHandler.emit('elsaa.database.done');
                     }
                 }
             });
-            console.log('Connection with Database established');
-            ElsaaEventHandler.emit('elsaa.database.done');
         }
     });
 }
@@ -164,7 +164,12 @@ function startElsaa() {
     console.log("Starting ELSAA...");
     acl = global.acl = new Acl(db);
 
-    acl.GetRolesUnder(0);
+//    acl.AddRole('administrator', 'administrator', null);
+//    acl.AddRole('moderator', 'moderator', 1);
+//    acl.GetRolesUnder(1, function(data) {
+//        data = data.slice(1, data.length);
+//        console.log(data);
+//    });
 
     db.close();
 }

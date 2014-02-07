@@ -22,7 +22,9 @@
         "sqlite3": "*",
         "jade": "*",
         "socket.io": "*",
-        "ldapjs": "*"
+        "ldapjs": "*",
+        "nodemailer": "*",
+        "crypto-js": "*"
     },
     "readmeFilename": "README.md"
 }
