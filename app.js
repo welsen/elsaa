@@ -165,12 +165,14 @@ function startElsaa() {
     console.log("Starting ELSAA...");
     acl = global.acl = new Acl(db);
 
-//    acl.AddRole('administrator', 'administrator', null);
-//    acl.AddRole('moderator', 'moderator', 1);
-//    acl.GetRolesUnder(1, function(data) {
-//        data = data.slice(1, data.length);
-//        console.log(data);
-//    });
+    //    acl.AddRole('administrator', 'administrator', null);
+    //    acl.AddRole('moderator', 'moderator', 1);
+    //    acl.GetRolesUnder(1, function(data) {
+    //        data = data.slice(1, data.length);
+    //        console.log(data);
+    //    });
+    acl.DeleteRole(1, function () {;
+    });
 
     db.close();
 }

@@ -5,109 +5,6 @@ var Acl = (function () {
 
     function Acl(db) {
         this.DB = db;
-        this.UsersTable = 'ACL_USERS';
-        this.RolesTable = 'ACL_ROLES';
-        this.PermissionsTable = 'ACL_PERMISSIONS';
-        this.RolePermissionsTable = 'ACL_ROLEPERMISSIONS';
-        this.UserRolesTable = 'ACL_USERROLES';
-        this.LastResult = null;
-
-        var self = this;
-
-        self.DB.serialize(function () {
-            self.DB.parallelize(function () {
-                self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.UsersTable, function (error, row) {
-                    if (error === null) {
-                        if (row === undefined) {
-                            self.DB.run("CREATE TABLE ACL_USERS(\
-                                ID          INTEGER     PRIMARY KEY AUTOINCREMENT,\
-                                USERNAME    TEXT        NOT NULL,\
-                                PASSWORD    TEXT        NOT NULL,\
-                                EMAIL       TEXT        NOT NULL,\
-                                FULLNAME    TEXT        NULL,\
-                                TYPE        CHAR(10)    NULL,\
-                                CREATED     INTEGER     NOT NULL,\
-                                MODIFIED    INTEGER     NOT NULL,\
-                                ACTIVE      BOOLEAN     NOT NULL\
-                            );", function (error) {
-                                if (error == null) {
-                                    self.DB.run("CREATE UNIQUE INDEX U_USER_NAME ON ACL_USERS(USERNAME);");
-                                    self.DB.run("CREATE UNIQUE INDEX U_USER_EMAIL ON ACL_USERS(EMAIL);");
-                                }
-                            });
-                        }
-                    }
-                });
-                self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.RolesTable, function (error, row) {
-                    if (error === null) {
-                        if (row === undefined) {
-                            self.DB.run("CREATE TABLE ACL_ROLES(\
-                                ID          INTEGER     PRIMARY KEY AUTOINCREMENT,\
-                                NAME        TEXT        NOT NULL,\
-                                DESCRIPTION TEXT        NOT NULL,\
-                                PARENT      INTEGER     NULL,\
-                                CREATED     INTEGER     NOT NULL,\
-                                MODIFIED    INTEGER     NOT NULL,\
-                                DELETABLE   BOOLEAN     NULL,\
-                                ACTIVE      BOOLEAN     NOT NULL\
-                            );", function (error) {
-                                if (error == null) {
-                                    self.DB.run("CREATE UNIQUE INDEX U_ROLE_NAME ON ACL_ROLES(NAME);");
-                                }
-                            });
-                        }
-                    }
-                });
-                self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.PermissionsTable, function (error, row) {
-                    if (error === null) {
-                        if (row === undefined) {
-                            self.DB.run("CREATE TABLE ACL_PERMISSIONS(\
-                                ID          INTEGER     PRIMARY KEY AUTOINCREMENT,\
-                                NAME        TEXT        NOT NULL,\
-                                DESCRIPTION TEXT        NOT NULL,\
-                                PARENT      INTEGER     NULL,\
-                                CREATED     INTEGER     NOT NULL,\
-                                MODIFIED    INTEGER     NOT NULL,\
-                                DELETABLE   BOOLEAN     NULL,\
-                                ACTIVE      BOOLEAN     NOT NULL\
-                            );", function (error) {
-                                if (error == null) {
-                                    self.DB.run("CREATE UNIQUE INDEX U_PERMISSION_NAME ON ACL_PERMISSIONS(NAME);");
-                                }
-                            });
-                        }
-                    }
-                });
-                self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.RolePermissionsTable, function (error, row) {
-                    if (error === null) {
-                        if (row === undefined) {
-                            self.DB.run("CREATE TABLE ACL_ROLEPERMISSIONS(\
-                                ROLEID       INTEGER     NOT NULL,\
-                                PERMISSIONID INTEGER     NOT NULL,\
-                                CREATED      INTEGER     NOT NULL,\
-                                MODIFIED     INTEGER     NOT NULL,\
-                                ACTIVE       BOOLEAN     NOT NULL,\
-                                PRIMARY KEY (ROLEID, PERMISSIONID)\
-                            );");
-                        }
-                    }
-                });
-                self.DB.get("SELECT * FROM sqlite_master WHERE type = 'table' AND tbl_name = ?", self.UserRolesTable, function (error, row) {
-                    if (error === null) {
-                        if (row === undefined) {
-                            self.DB.run("CREATE TABLE ACL_USERROLES(\
-                                USERID      INTEGER     NOT NULL,\
-                                ROLEID      INTEGER     NOT NULL,\
-                                CREATED     INTEGER     NOT NULL,\
-                                MODIFIED    INTEGER     NOT NULL,\
-                                ACTIVE      BOOLEAN     NOT NULL,\
-                                PRIMARY KEY (USERID, ROLEID)\
-                            );");
-                        }
-                    }
-                });
-            });
-        });
     }
 
     Acl.prototype.AddRole = function (name, desc, parent, callback) {
@@ -149,21 +46,23 @@ var Acl = (function () {
         var self = this;
         var now = (new Date()).getTime();
 
-        self.DB.run("UPDATE ACL_ROLES SET ACTIVE=0, MODIFIED=:now WHERE ID=:id", {
+        self.DB.run("UPDATE ACL_ROLES SET ACTIVE=0, MODIFIED=:now WHERE ID=:id AND DELETABLE=1", {
             ':id': id,
             ':now': now
         }, function (error) {
             if (error == null) {
-                self.DB.run("UPDATE ACL_ROLES SET PARENT=0, MODIFIED=:now WHERE PARENT=:id", {
-                    ':id': id,
-                    ':now': now
-                }, function (error) {
-                    if (error == null) {
-                        callback();
-                    } else {
-                        console.log(error);
-                    }
-                })
+                if (this.changes != 0) {
+                    self.DB.run("UPDATE ACL_ROLES SET PARENT=0, MODIFIED=:now WHERE PARENT=:id", {
+                        ':id': id,
+                        ':now': now
+                    }, function (error) {
+                        if (error == null) {
+                            callback();
+                        } else {
+                            console.log(error);
+                        }
+                    });
+                }
             } else {
                 console.log(error);
             }
@@ -237,16 +136,18 @@ var Acl = (function () {
             ':now': now
         }, function (error) {
             if (error == null) {
-                self.DB.run("UPDATE ACL_PERMISSIONS SET PARENT=0, MODIFIED=:now WHERE PARENT=:id", {
-                    ':id': id,
-                    ':now': now
-                }, function (error) {
-                    if (error == null) {
-                        callback();
-                    } else {
-                        console.log(error);
-                    }
-                })
+                if (this.changes != 0) {
+                    self.DB.run("UPDATE ACL_PERMISSIONS SET PARENT=0, MODIFIED=:now WHERE PARENT=:id", {
+                        ':id': id,
+                        ':now': now
+                    }, function (error) {
+                        if (error == null) {
+                            callback();
+                        } else {
+                            console.log(error);
+                        }
+                    });
+                }
             } else {
                 console.log(error);
             }
