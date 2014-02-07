@@ -370,7 +370,7 @@ var Acl = (function () {
 
         self.DB.run("INSERT INTO ACL_USERS(USERNAME, PASSWORD, EMAIL, FULLNAME, TYPE, CREATED, MODIFIED, ACTIVE) VALUES(:username, :password, :email, :fullname, 'local', :now, :now, 1)", {
             ':username': username,
-            ':password': md5(password),
+            ':password': md5(password).toString(),
             ':email': email,
             ':fullname': fullname,
             ':now': now

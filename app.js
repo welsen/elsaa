@@ -12,6 +12,7 @@ var path = require('path');
 var util = require('util');
 var events = require('events');
 var sqlite3 = require('sqlite3').verbose();
+var md5 = require('crypto-js/md5');
 var vidStreamer = require("vid-streamer");
 
 var Acl = require('./modules/acl').Acl;
@@ -39,7 +40,7 @@ ElsaaEventHandler.on('elsaa.server.done', function () {
     startElsaa();
 });
 
-var sessionSecret = "47b879d554800d2ef0605cddd359fd82";
+var sessionSecret = md5('ELSAA').toString();
 var dbPath = path.join(__dirname, 'database', 'elsaa.sq3');
 
 var privateKey = fs.readFileSync(path.join(__dirname, 'ssl', 'localhost.key')).toString();
