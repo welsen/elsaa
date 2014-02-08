@@ -14,6 +14,8 @@ var events = require('events');
 var sqlite3 = require('sqlite3').verbose();
 var md5 = require('crypto-js/md5');
 var vidStreamer = require("vid-streamer");
+var logger = require('log4js').getLogger();
+var us = require('underscore');
 
 var Acl = require('./modules/acl').Acl;
 
@@ -24,19 +26,19 @@ util.inherits(ElsaaEventEmitter, events.EventEmitter);
 var ElsaaEventHandler = new ElsaaEventEmitter();
 
 ElsaaEventHandler.on('elsaa.init.done', function () {
-    console.log('Init done...');
+    logger.info('Init done...');
     initDatabase();
 });
 ElsaaEventHandler.on('elsaa.database.done', function () {
-    console.log('Database initilaized...');
+    logger.info('Database initilaized...');
     initRoutes();
 });
 ElsaaEventHandler.on('elsaa.routes.done', function () {
-    console.log('Routes initialized...');
+    logger.info('Routes initialized...');
     initServer();
 });
 ElsaaEventHandler.on('elsaa.server.done', function () {
-    console.log('Server ready...');
+    logger.info('Server ready...');
     startElsaa();
 });
 
@@ -136,11 +138,11 @@ function initWebsocket(websocket, server, secure) {
 function initServer() {
     serverHttp = http.createServer(app).listen(app.get('port-http'), function () {
         initWebsocket(websocketHttp, serverHttp);
-        console.log(util.format('WebServer listening on port: %d', app.get('port-http')));
+        logger.info(util.format('WebServer listening on port: %d', app.get('port-http')));
     });
     serverHttps = https.createServer(credentials, app).listen(app.get('port-https'), function () {
         initWebsocket(websocketHttps, serverHttps, true);
-        console.log(util.format('Secure WebServer listening on port: %d', app.get('port-https')));
+        logger.info(util.format('Secure WebServer listening on port: %d', app.get('port-https')));
     });
     ElsaaEventHandler.emit('elsaa.server.done');
 }
@@ -151,8 +153,8 @@ function initDatabase() {
             db.get("select 'SQLite Version: ' || sqlite_version() as version;", function (error, row) {
                 if (error === null) {
                     if (row !== undefined) {
-                        console.log(row.version);
-                        console.log('Connection with Database established');
+                        logger.info(row.version);
+                        logger.info('Connection with Database established');
                         ElsaaEventHandler.emit('elsaa.database.done');
                     }
                 }
@@ -162,17 +164,20 @@ function initDatabase() {
 }
 
 function startElsaa() {
-    console.log("Starting ELSAA...");
+    logger.info("Starting ELSAA...");
     acl = global.acl = new Acl(db);
 
     //    acl.AddRole('administrator', 'administrator', null);
     //    acl.AddRole('moderator', 'moderator', 1);
-    //    acl.GetRolesUnder(1, function(data) {
-    //        data = data.slice(1, data.length);
-    //        console.log(data);
-    //    });
-    acl.DeleteRole(1, function () {;
+    acl.GetRolesUnder(1, function (data) {
+        data = data.slice(1, data.length);
+        console.log(data);
     });
+    //    acl.AddLocalUser('simpleuser', md5('password').toString(), 'simple user', 'simple.user@email.tld', function () {
+    acl.Authenticate('simpleuser', md5('password').toString(), function (result) {
+        logger.info(result);
+    });
+    //    });
 
     db.close();
 }

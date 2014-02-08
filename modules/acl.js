@@ -1,10 +1,14 @@
 var md5 = require("crypto-js/md5");
+var logger = require('log4js').getLogger();
+var us = require('underscore');
 
 var Acl = (function () {
     'use strict';
 
     function Acl(db) {
         this.DB = db;
+        this.Auth = {};
+        var self = this;
     }
 
     Acl.prototype.AddRole = function (name, desc, parent, callback) {
@@ -20,7 +24,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
     };
@@ -37,7 +41,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
     };
@@ -59,12 +63,12 @@ var Acl = (function () {
                         if (error == null) {
                             callback();
                         } else {
-                            console.error(error);
+                            logger.error(error);
                         }
                     });
                 }
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
     };
@@ -74,20 +78,20 @@ var Acl = (function () {
 
         self.DB.all("WITH RECURSIVE\
                 UNDER_ROLE(NAME,PARENT,DESCRIPTION,ID) AS (\
-                    SELECT '' AS NAME, :id AS PARENT, '' AS DESCRIPTION, 0 AS ID\
+                    SELECT '' AS NAME, 0 AS PARENT, '' AS DESCRIPTION, :id AS ID\
                     UNION ALL\
                     SELECT ACL_ROLES.NAME, UNDER_ROLE.PARENT + 1, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID\
-                        FROM ACL_ROLES JOIN UNDER_ROLE ON ACL_ROLES.PARENT=UNDER_ROLE.PARENT\
+                        FROM ACL_ROLES JOIN UNDER_ROLE ON ACL_ROLES.PARENT=UNDER_ROLE.ID\
                         WHERE ACL_ROLES.ACTIVE = 1\
-                        ORDER BY 2\
+                        ORDER BY 2 DESC\
                 )\
-            SELECT ID, NAME, PARENT, DESCRIPTION FROM UNDER_ROLE;", {
+            SELECT ID, NAME, PARENT, DESCRIPTION FROM UNDER_ROLE WHERE PARENT > 0;", {
             ':id': id
         }, function (error, rows) {
             if (error == null) {
                 callback(rows);
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
     };
@@ -105,7 +109,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
     };
@@ -122,7 +126,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
     };
@@ -144,12 +148,12 @@ var Acl = (function () {
                         if (error == null) {
                             callback();
                         } else {
-                            console.error(error);
+                            logger.error(error);
                         }
                     });
                 }
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
     };
@@ -158,21 +162,21 @@ var Acl = (function () {
         var self = this;
 
         self.DB.all("WITH RECURSIVE\
-                UNDER_ROLE(NAME,PARENT,DESCRIPTION,ID) AS (\
-                    SELECT '' AS NAME, :id AS PARENT, '' AS DESCRIPTION, 0 AS ID\
-                    UNION ALL\
-                    SELECT ACL_PERMISSIONS.NAME, UNDER_ROLE.PARENT + 1, ACL_PERMISSIONS.DESCRIPTION, ACL_ROLES.ID\
-                        FROM ACL_PERMISSIONS JOIN UNDER_ROLE ON ACL_PERMISSIONS.PARENT=UNDER_ROLE.PARENT\
-                        WHERE ACL_PERMISSIONS.ACTIVE = 1\
-                        ORDER BY 2\
-                )\
-            SELECT ID, NAME, PARENT, DESCRIPTION FROM UNDER_ROLE;", {
+                        UNDER_PERMISSION(NAME,PARENT,DESCRIPTION,ID) AS (\
+                            SELECT '' AS NAME, 0 AS PARENT, '' AS DESCRIPTION, :id AS ID\
+                            UNION ALL\
+                            SELECT ACL_PERMISSIONS.NAME, UNDER_PERMISSION.PARENT + 1, ACL_PERMISSIONS.DESCRIPTION, ACL_PERMISSIONS.ID\
+                                FROM ACL_PERMISSIONS JOIN UNDER_PERMISSION ON ACL_PERMISSIONS.PARENT=UNDER_PERMISSION.ID\
+                                WHERE ACL_PERMISSIONS.ACTIVE = 1\
+                                ORDER BY 2 DESC\
+                        )\
+                    SELECT ID, NAME, PARENT, DESCRIPTION FROM UNDER_PERMISSION WHERE PARENT > 0;", {
             ':id': id
         }, function (error, rows) {
             if (error == null) {
                 callback(rows);
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
     };
@@ -197,7 +201,7 @@ var Acl = (function () {
                     if (error == null) {
                         callback();
                     } else {
-                        console.error(error);
+                        logger.error(error);
                     }
                 });
             }
@@ -216,7 +220,7 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
     };
@@ -241,7 +245,7 @@ var Acl = (function () {
                     if (error == null) {
                         callback();
                     } else {
-                        console.error(error);
+                        logger.error(error);
                     }
                 });
             }
@@ -260,28 +264,99 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
     };
 
-    Acl.prototype.AddUser = function (username, password, fullname, email, callback) {
+    Acl.prototype.AddLocalUser = function (username, password, fullname, email, callback) {
+        var self = this;
+        self.AddUser(username, password, fullname, email, 'local', callback);
+    };
+
+    Acl.prototype.AddLDAPUser = function (username, password, fullname, email, callback) {
+        var self = this;
+        self.AddUser(username, password, fullname, email, 'ldap', callback);
+    };
+
+    Acl.prototype.AddUser = function (username, password, fullname, email, type, callback) {
         var self = this;
         var now = (new Date()).getTime();
 
-        self.DB.run("INSERT INTO ACL_USERS(USERNAME, PASSWORD, EMAIL, FULLNAME, TYPE, CREATED, MODIFIED, ACTIVE) VALUES(:username, :password, :email, :fullname, 'local', :now, :now, 1)", {
+        self.DB.run("INSERT INTO ACL_USERS(USERNAME, PASSWORD, EMAIL, FULLNAME, TYPE, CREATED, MODIFIED, ACTIVE) VALUES(:username, :password, :email, :fullname, :type, :cnow, :mnow, 1)", {
             ':username': username,
             ':password': md5(password).toString(),
             ':email': email,
             ':fullname': fullname,
-            ':now': now
+            ':type': type,
+            ':cnow': now,
+            ':mnow': now
         }, function (error) {
             if (error == null) {
                 callback();
             } else {
-                console.error(error);
+                logger.error(error);
             }
         });
+    };
+
+    Acl.prototype.Authenticate = function (username, password, callback) {
+        var self = this;
+        var token = md5((new Date()).getTime().toString()).toString();
+
+        self.DB.get("SELECT ID, USERNAME, FULLNAME, EMAIL FROM ACL_USERS WHERE USERNAME=:username AND PASSWORD=:password AND ACTIVE=1;", {
+            ':username': username,
+            ':password': md5(password).toString()
+        }, function (error, row) {
+            if (error == null) {
+                if (row !== undefined) {
+                    var user = row;
+                    self.Auth[token] = {
+                        'user': user,
+                        'permissions': []
+                    };
+                    self.DB.all("SELECT ACL_ROLEPERMISSIONS.*\
+                            FROM ACL_USERROLES\
+                            JOIN ACL_ROLEPERMISSIONS ON ACL_USERROLES.ROLEID = ACL_ROLEPERMISSIONS.ROLEID\
+                            WHERE USERID=:uid AND ACL_USERROLES.ACTIVE=1;", {
+                        ':uid': user.ID
+                    }, function (error, rows) {
+                        if (error == null) {
+                            self.Auth[token].rolecount = rows.length;
+                            self.Auth[token].c = 0;
+                            for (var idx in rows) {
+                                var permission = rows[idx];
+                                self.GetPermissionsUnder(permission.PERMISSIONID, function (data) {
+                                    data.forEach(function (perm) {
+                                        self.Auth[token].permissions.push(perm);
+                                    });
+                                    self.Auth[token].c++;
+                                    debugger;
+                                    if (self.IsAuthReady(self.Auth[token].c, token)) {
+                                        self.OnAuthenticationDone(token, callback);
+                                    }
+                                });
+                            };
+                        }
+                    });
+                } else {
+                    callback(false);
+                }
+            } else {
+                logger.error(error);
+                callback(false);
+            }
+        });
+    };
+
+    Acl.prototype.IsAuthReady = function (c, token) {
+        var self = this;
+        return c == self.Auth[token].rolecount;
+    };
+
+    Acl.prototype.OnAuthenticationDone = function (token, callback) {
+        var self = this;
+        callback(self.Auth[token]);
     };
 
     return Acl;
