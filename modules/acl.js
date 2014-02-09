@@ -158,20 +158,22 @@ var Acl = (function () {
         });
     };
 
-    Acl.prototype.GetPermissionsUnder = function (id, callback) {
+    Acl.prototype.GetPermissionsUnder = function (permission, callback) {
         var self = this;
 
         self.DB.all("WITH RECURSIVE\
                         UNDER_PERMISSION(NAME,PARENT,DESCRIPTION,ID) AS (\
-                            SELECT '' AS NAME, 0 AS PARENT, '' AS DESCRIPTION, :id AS ID\
+                            SELECT :name AS NAME, 0 AS PARENT, :desc AS DESCRIPTION, :id AS ID\
                             UNION ALL\
                             SELECT ACL_PERMISSIONS.NAME, UNDER_PERMISSION.PARENT + 1, ACL_PERMISSIONS.DESCRIPTION, ACL_PERMISSIONS.ID\
                                 FROM ACL_PERMISSIONS JOIN UNDER_PERMISSION ON ACL_PERMISSIONS.PARENT=UNDER_PERMISSION.ID\
                                 WHERE ACL_PERMISSIONS.ACTIVE = 1\
                                 ORDER BY 2 DESC\
                         )\
-                    SELECT ID, NAME, PARENT, DESCRIPTION FROM UNDER_PERMISSION WHERE PARENT > 0;", {
-            ':id': id
+                    SELECT ID, NAME, PARENT, DESCRIPTION FROM UNDER_PERMISSION;", {
+            ':id': permission.ID,
+            ':name': permission.NAME,
+            ':desc': permission.DESCRIPTION
         }, function (error, rows) {
             if (error == null) {
                 callback(rows);
@@ -315,9 +317,10 @@ var Acl = (function () {
                         'user': user,
                         'permissions': []
                     };
-                    self.DB.all("SELECT ACL_ROLEPERMISSIONS.*\
+                    self.DB.all("SELECT ACL_PERMISSIONS.ID, ACL_PERMISSIONS.NAME, ACL_PERMISSIONS.DESCRIPTION\
                             FROM ACL_USERROLES\
                             JOIN ACL_ROLEPERMISSIONS ON ACL_USERROLES.ROLEID = ACL_ROLEPERMISSIONS.ROLEID\
+                            JOIN ACL_PERMISSIONS ON ACL_ROLEPERMISSIONS.PERMISSIONID = ACL_PERMISSIONS.ID\
                             WHERE USERID=:uid AND ACL_USERROLES.ACTIVE=1;", {
                         ':uid': user.ID
                     }, function (error, rows) {
@@ -326,12 +329,15 @@ var Acl = (function () {
                             self.Auth[token].c = 0;
                             for (var idx in rows) {
                                 var permission = rows[idx];
-                                self.GetPermissionsUnder(permission.PERMISSIONID, function (data) {
+                                self.GetPermissionsUnder(permission, function (data) {
                                     data.forEach(function (perm) {
-                                        self.Auth[token].permissions.push(perm);
+                                        var exists = us.findWhere(self.Auth[token].permissions, perm) != undefined;
+                                        if (!exists) {
+                                            self.Auth[token].permissions.push(perm);
+                                        }
                                     });
                                     self.Auth[token].c++;
-                                    debugger;
+                                    // debugger;
                                     if (self.IsAuthReady(self.Auth[token].c, token)) {
                                         self.OnAuthenticationDone(token, callback);
                                     }
@@ -357,6 +363,7 @@ var Acl = (function () {
     Acl.prototype.OnAuthenticationDone = function (token, callback) {
         var self = this;
         callback(self.Auth[token]);
+        // delete self.Auth[token];
     };
 
     return Acl;

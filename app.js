@@ -105,6 +105,15 @@ function init() {
 
 function initRoutes() {
     app.get('/', routes.index);
+    app.get('/login', routes.login);
+    app.post('/login/authenticate', routes.loginAuthenticate);
+    app.get('/logout', routes.logout);
+
+    app.get('/admin', routes.admin);
+    app.get('/admin/login', routes.adminLogin);
+    app.post('/admin/login/authenticate', routes.adminLoginAuthenticate);
+    app.get('/admin/logout', routes.adminLogout);
+
     app.get('/videos/', vidStreamer);
 
     ElsaaEventHandler.emit('elsaa.routes.done');
@@ -169,17 +178,15 @@ function startElsaa() {
 
     //    acl.AddRole('administrator', 'administrator', null);
     //    acl.AddRole('moderator', 'moderator', 1);
-    acl.GetRolesUnder(1, function (data) {
-        data = data.slice(1, data.length);
-        console.log(data);
-    });
-    //    acl.AddLocalUser('simpleuser', md5('password').toString(), 'simple user', 'simple.user@email.tld', function () {
-    acl.Authenticate('simpleuser', md5('password').toString(), function (result) {
-        logger.info(result);
-    });
+    //    acl.GetRolesUnder(1, function (data) {
+    //        data = data.slice(1, data.length);
+    //        console.log(data);
     //    });
-
-    db.close();
+    //    acl.AddLocalUser('simpleuser', md5('password').toString(), 'simple user', 'simple.user@email.tld', function () {
+    //    acl.Authenticate('simpleuser', md5('password').toString(), function (result) {
+    //        logger.info(result);
+    //    });
+    //    });
 }
 
 init();
