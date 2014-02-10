@@ -86,7 +86,17 @@ body {
 }
 .placeholder {
     margin-bottom: 20px;
+    display: inline-block;
+    float: none;
+}
+.placeholder:hover,
+.placeholder:hover h4 {
+    font-weight: bold;
+    cursor: pointer;
 }
 .placeholder img {
     border-radius: 50%;
+    max-height: 200px;
+    max-width: 200px;
+    display: inline-block;
 }

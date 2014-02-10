@@ -6,106 +6,121 @@ var md5 = require('crypto-js/md5');
 var logger = require('log4js').getLogger();
 var us = require('underscore');
 
-exports.index = function (req, res) {
-    if (req.session.user) {
-        // logger.debug(req.session.user);
-        res.render('index', {
-            title: 'ELSAA',
-            page: 'index'
-        });
-    } else {
-        res.redirect('/login');
-    }
-};
-
-exports.login = function (req, res) {
-    res.render('login', {
-        title: 'ELSAA Login',
-        page: 'login',
-        locale: {
-            'signInHeading': 'Please sign in',
-            'username': 'Username',
-            'password': 'Password',
-            'rememberMe': 'Remember me',
-            'signIn': 'Sign in'
-        }
-    });
-};
-
-exports.loginAuthenticate = function (req, res) {
-    var username = req.body.username;
-    var password = req.body.password;
-    // logger.debug(password);
-    global.acl.Authenticate(username, password, function (result) {
-        if (result !== false) {
-            req.session.user = result;
-            res.redirect('/');
+var Main = (function () {
+    function Main() {}
+    Main.prototype.Index = function (req, res) {
+        if (req.session.user) {
+            // logger.debug(req.session.user);
+            res.render('main/index', {
+                title: 'ELSAA',
+                page: 'main/index'
+            });
         } else {
             res.redirect('/login');
         }
-    });
-};
+    };
 
-exports.logout = function (req, res) {
-    if (req.session.user) {
-        delete req.session.user;
-    }
-    res.redirect('/login');
-};
-
-exports.admin = function (req, res) {
-    if (req.session.adminuser) {
-        res.render('adminindex', {
-            title: 'ELSAA Admin',
-            page: 'adminindex',
-            permissions: req.session.adminuser.permissions
-        });
-    } else {
-        res.redirect('/admin/login');
-    }
-};
-
-exports.adminLogin = function (req, res) {
-    res.render('adminlogin', {
-        title: 'ELSAA Admin Login',
-        page: 'adminlogin',
-        locale: {
-            'signInHeading': 'Please sign in',
-            'username': 'Username',
-            'password': 'Password',
-            'rememberMe': 'Remember me',
-            'signIn': 'Sign in'
-        }
-    });
-};
-
-exports.adminLoginAuthenticate = function (req, res) {
-    var username = req.body.username;
-    var password = req.body.password;
-    global.acl.Authenticate(username, password, function (result) {
-        if (result !== false) {
-            req.session.adminuser = result;
-            // logger.debug(req.session.adminuser);
-            var adminAccess = us.findWhere(req.session.adminuser.permissions, {
-                'NAME': 'Admin Access'
-            }) != undefined;
-            if (adminAccess) {
-                req.session.user = us.clone(req.session.adminuser);
-                res.redirect('/admin');
-            } else {
-                req.session.user = us.clone(req.session.adminuser);
-                delete req.session.adminuser;
-                res.redirect('/');
+    Main.prototype.Login = function (req, res) {
+        res.render('main/login', {
+            title: 'ELSAA Login',
+            page: 'main/login',
+            locale: {
+                'signInHeading': 'Please sign in',
+                'username': 'Username',
+                'password': 'Password',
+                'rememberMe': 'Remember me',
+                'signIn': 'Sign in'
             }
+        });
+    };
+
+    Main.prototype.LoginAuthenticate = function (req, res) {
+        var username = req.body.username;
+        var password = md5(req.body.password).toString();
+        // logger.debug(password);
+        global.acl.Authenticate(username, password, function (result) {
+            if (result !== false) {
+                req.session.user = result;
+                res.redirect('/');
+            } else {
+                res.redirect('/login');
+            }
+        });
+    };
+
+    Main.prototype.Logout = function (req, res) {
+        if (req.session.user) {
+            delete req.session.user;
+        }
+        res.redirect('/login');
+    };
+
+    return Main;
+})();
+
+var Admin = (function () {
+    function Admin() {}
+    Admin.prototype.Index = function (req, res) {
+        if (req.session.adminuser) {
+            // logger.debug(req.session.user);
+            res.render('admin/index', {
+                title: 'ELSAA Admin',
+                page: 'admin/index',
+                permissions: req.session.adminuser.permissions,
+                perms: req.session.adminuser.perms
+            });
         } else {
             res.redirect('/admin/login');
         }
-    });
-};
+    };
 
-exports.adminLogout = function (req, res) {
-    if (req.session.adminuser) {
-        delete req.session.adminuser;
-    }
-    res.redirect('/admin/login');
-};
+    Admin.prototype.Login = function (req, res) {
+        res.render('admin/login', {
+            title: 'ELSAA Login',
+            page: 'admin/login',
+            locale: {
+                'signInHeading': 'Please sign in',
+                'username': 'Username',
+                'password': 'Password',
+                'rememberMe': 'Remember me',
+                'signIn': 'Sign in'
+            }
+        });
+    };
+
+    Admin.prototype.LoginAuthenticate = function (req, res) {
+        var username = req.body.username;
+        var password = md5(req.body.password).toString();
+        global.acl.Authenticate(username, password, function (result) {
+            if (result !== false) {
+                req.session.adminuser = result;
+                // logger.debug(req.session.adminuser);
+                var adminAccess = us.findWhere(req.session.adminuser.permissions, {
+                    'NAME': 'Admin Access'
+                }) != undefined;
+                if (adminAccess) {
+                    req.session.user = us.clone(req.session.adminuser);
+                    res.redirect('/admin');
+                } else {
+                    req.session.user = us.clone(req.session.adminuser);
+                    delete req.session.adminuser;
+                    res.redirect('/');
+                }
+            } else {
+                res.redirect('/admin/login');
+            }
+        });
+    };
+
+    Admin.prototype.Logout = function (req, res) {
+        if (req.session.user) {
+            delete req.session.user;
+        }
+        res.redirect('/login');
+    };
+
+    return Admin;
+})();
+
+exports.main = new Main();
+exports.admin = new Admin();

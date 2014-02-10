@@ -1,4 +1,4 @@
-extends layout
+extends ../layout
 
 block content
     .navbar.navbar-inverse.navbar-fixed-top(role='navigation')
@@ -56,23 +56,22 @@ block content
             .col-sm-9.col-sm-offset-3.col-md-10.col-md-offset-2.main
                 h1.page-header Dashboard
                 .row.placeholders
-                    .col-xs-6.col-sm-3.placeholder
-                        img.img-responsive(data-src='holder.js/200x200/auto/sky', alt='Generic placeholder thumbnail')
-                        h4 Label
-                        span.text-muted Something else
-                    .col-xs-6.col-sm-3.placeholder
-                        img.img-responsive(data-src='holder.js/200x200/auto/vine', alt='Generic placeholder thumbnail')
-                        h4 Label
-                        span.text-muted Something else
-                    .col-xs-6.col-sm-3.placeholder
-                        img.img-responsive(data-src='holder.js/200x200/auto/sky', alt='Generic placeholder thumbnail')
-                        h4 Label
-                        span.text-muted Something else
-                    .col-xs-6.col-sm-3.placeholder
-                        img.img-responsive(data-src='holder.js/200x200/auto/vine', alt='Generic placeholder thumbnail')
-                        h4 Label
-                        span.text-muted Something else
-                h2.sub-header Section title
+                    -if (perms['Manage Roles'])
+                        .col-xs-6.col-sm-3.placeholder
+                            img.img-responsive(src='images/permissions.png', alt='Generic placeholder thumbnail')
+                            h4 Permissions
+                            span.text-muted Manage permissions
+                    -if (perms['Manage Roles'])
+                        .col-xs-6.col-sm-3.placeholder
+                            img.img-responsive(src='images/roles.png', alt='Generic placeholder thumbnail')
+                            h4 Roles
+                            span.text-muted Manage roles
+                    -if (perms['Manage Users'])
+                        .col-xs-6.col-sm-3.placeholder
+                            img.img-responsive(src='images/users.png', alt='Generic placeholder thumbnail')
+                            h4 Users
+                            span.text-muted Manage users
+                h2.sub-header My Permissions
                 .table-responsive
                     table.table.table-striped
                         thead
@@ -82,9 +81,7 @@ block content
                                 th Level
                                 th Description
                         tbody
-                            - for(var idx in permissions)
-                                - var perm = permissions[idx]
+                            - each perm, idx in permissions
                                 tr
-                                    - for(var idf in perm)
-                                        - var value = perm[idf]
+                                    - each value, idf in perm
                                         td= value

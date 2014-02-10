@@ -362,6 +362,13 @@ var Acl = (function () {
 
     Acl.prototype.OnAuthenticationDone = function (token, callback) {
         var self = this;
+        var permissions = {};
+        self.Auth[token].permissions.forEach(function (permission) {
+            if (!permissions.hasOwnProperty(permission.NAME)) {
+                permissions[permission.NAME] = true;
+            }
+        });
+        self.Auth[token].perms = permissions;
         callback(self.Auth[token]);
         // delete self.Auth[token];
     };

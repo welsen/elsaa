@@ -104,15 +104,15 @@ function init() {
 }
 
 function initRoutes() {
-    app.get('/', routes.index);
-    app.get('/login', routes.login);
-    app.post('/login/authenticate', routes.loginAuthenticate);
-    app.get('/logout', routes.logout);
+    app.get('/', routes.main.Index);
+    app.get('/login', routes.main.Login);
+    app.post('/login/authenticate', routes.main.LoginAuthenticate);
+    app.get('/logout', routes.main.Logout);
 
-    app.get('/admin', routes.admin);
-    app.get('/admin/login', routes.adminLogin);
-    app.post('/admin/login/authenticate', routes.adminLoginAuthenticate);
-    app.get('/admin/logout', routes.adminLogout);
+    app.get('/admin', routes.admin.Index);
+    app.get('/admin/login', routes.admin.Login);
+    app.post('/admin/login/authenticate', routes.admin.LoginAuthenticate);
+    app.get('/admin/logout', routes.admin.Logout);
 
     app.get('/videos/', vidStreamer);
 
