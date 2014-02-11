@@ -329,7 +329,7 @@ var Acl = (function () {
                                             WHERE ACL_ROLES.ACTIVE = 1\
                                             ORDER BY 2 DESC\
                                     )\
-                                SELECT ACL_PERMISSIONS.ID, ACL_PERMISSIONS.NAME, ACL_PERMISSIONS.DESCRIPTION\
+                                SELECT DISTINCT ACL_PERMISSIONS.ID, ACL_PERMISSIONS.NAME, ACL_PERMISSIONS.DESCRIPTION\
                                     FROM UNDER_ROLE\
                                     JOIN ACL_ROLEPERMISSIONS ON UNDER_ROLE.ID = ACL_ROLEPERMISSIONS.ROLEID\
                                     JOIN ACL_PERMISSIONS ON ACL_ROLEPERMISSIONS.PERMISSIONID = ACL_PERMISSIONS.ID;", {
@@ -354,6 +354,9 @@ var Acl = (function () {
                                     }
                                 });
                             };
+                            if (self.IsAuthReady(self.Auth[token].c, token)) {
+                                self.OnAuthenticationDone(token, callback);
+                            }
                         }
                     });
                 } else {

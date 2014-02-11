@@ -10,4 +10,5 @@ block content
                 input(name='remember', data-access='remember', type='checkbox', value='remember')
                 != locale.rememberMe
             button.btn.btn-lg.btn-primary.btn-block(type='submit')= locale.signIn
+            p.helpb-lock!= locale.loginHelp
     script(src='/javascripts/' + page + '.js')

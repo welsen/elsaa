@@ -29,6 +29,7 @@ var Main = (function () {
                 'username': 'Username',
                 'password': 'Password',
                 'rememberMe': 'Remember me',
+                'loginHelp': 'For admin login click <a href="/admin">here</a>',
                 'signIn': 'Sign in'
             }
         });
@@ -67,7 +68,8 @@ var Admin = (function () {
                 title: 'ELSAA Admin',
                 page: 'admin/index',
                 permissions: req.session.adminuser.permissions,
-                perms: req.session.adminuser.perms
+                perms: req.session.adminuser.perms,
+                subpage: 'dashboard'
             });
         } else {
             res.redirect('/admin/login');
@@ -95,10 +97,7 @@ var Admin = (function () {
             if (result !== false) {
                 req.session.adminuser = result;
                 // logger.debug(req.session.adminuser);
-                var adminAccess = us.findWhere(req.session.adminuser.permissions, {
-                    'NAME': 'Admin Access'
-                }) != undefined;
-                if (adminAccess) {
+                if (req.session.adminuser.perms['Admin Access']) {
                     req.session.user = us.clone(req.session.adminuser);
                     res.redirect('/admin');
                 } else {
@@ -113,6 +112,9 @@ var Admin = (function () {
     };
 
     Admin.prototype.Logout = function (req, res) {
+        if (req.session.adminuser) {
+            delete req.session.adminuser;
+        }
         if (req.session.user) {
             delete req.session.user;
         }

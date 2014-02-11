@@ -1,0 +1,41 @@
+h1.page-header Dashboard
+.row.placeholders
+    -if (perms['Manage Roles'])
+        .col-xs-6.col-sm-3.placeholder
+            img.img-responsive(src='images/permissions.png', alt='Generic placeholder thumbnail')
+            h4 Permissions
+            span.text-muted Manage permissions
+    -if (perms['Manage Roles'])
+        .col-xs-6.col-sm-3.placeholder
+            img.img-responsive(src='images/roles.png', alt='Generic placeholder thumbnail')
+            h4 Roles
+            span.text-muted Manage roles
+    -if (perms['Manage Users'])
+        .col-xs-6.col-sm-3.placeholder
+            img.img-responsive(src='images/users.png', alt='Generic placeholder thumbnail')
+            h4 Users
+            span.text-muted Manage users
+    -if (perms['Manage Courses'])
+        .col-xs-6.col-sm-3.placeholder
+            img.img-responsive(src='images/courses.png', alt='Generic placeholder thumbnail')
+            h4 Courses
+            span.text-muted Manage courses
+    -if (perms['Manage Classes'])
+        .col-xs-6.col-sm-3.placeholder
+            img.img-responsive(src='images/classes.png', alt='Generic placeholder thumbnail')
+            h4 Classes
+            span.text-muted Manage classes
+h2.sub-header My Permissions
+.table-responsive
+    table.table.table-striped
+        thead
+            tr
+                th #
+                th Name
+                th Level
+                th Description
+        tbody
+            - each perm, idx in permissions
+                tr
+                    - each value, idf in perm
+                        td= value
