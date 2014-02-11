@@ -317,11 +317,22 @@ var Acl = (function () {
                         'user': user,
                         'permissions': []
                     };
-                    self.DB.all("SELECT ACL_PERMISSIONS.ID, ACL_PERMISSIONS.NAME, ACL_PERMISSIONS.DESCRIPTION\
-                            FROM ACL_USERROLES\
-                            JOIN ACL_ROLEPERMISSIONS ON ACL_USERROLES.ROLEID = ACL_ROLEPERMISSIONS.ROLEID\
-                            JOIN ACL_PERMISSIONS ON ACL_ROLEPERMISSIONS.PERMISSIONID = ACL_PERMISSIONS.ID\
-                            WHERE USERID=:uid AND ACL_USERROLES.ACTIVE=1;", {
+                    self.DB.all("WITH RECURSIVE\
+                                    UNDER_ROLE(NAME,PARENT,DESCRIPTION,ID) AS (\
+                                        SELECT ACL_ROLES.NAME, 0, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID\
+                                            FROM ACL_USERROLES\
+                                            JOIN ACL_ROLES ON ACL_USERROLES.ROLEID = ACL_ROLES.ID\
+                                            WHERE USERID=:uid AND ACL_USERROLES.ACTIVE=1\
+                                        UNION ALL\
+                                        SELECT ACL_ROLES.NAME, UNDER_ROLE.PARENT + 1, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID\
+                                            FROM ACL_ROLES JOIN UNDER_ROLE ON ACL_ROLES.PARENT=UNDER_ROLE.ID\
+                                            WHERE ACL_ROLES.ACTIVE = 1\
+                                            ORDER BY 2 DESC\
+                                    )\
+                                SELECT ACL_PERMISSIONS.ID, ACL_PERMISSIONS.NAME, ACL_PERMISSIONS.DESCRIPTION\
+                                    FROM UNDER_ROLE\
+                                    JOIN ACL_ROLEPERMISSIONS ON UNDER_ROLE.ID = ACL_ROLEPERMISSIONS.ROLEID\
+                                    JOIN ACL_PERMISSIONS ON ACL_ROLEPERMISSIONS.PERMISSIONID = ACL_PERMISSIONS.ID;", {
                         ':uid': user.ID
                     }, function (error, rows) {
                         if (error == null) {
