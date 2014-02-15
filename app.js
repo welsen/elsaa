@@ -14,33 +14,35 @@ var events = require('events');
 var sqlite3 = require('sqlite3').verbose();
 var md5 = require('crypto-js/md5');
 var vidStreamer = require("vid-streamer");
-var log4js = require('log4js');
-log4js.configure({
+global.log4js = require('log4js');
+global.log4js.configure({
     appenders: [
-        {
-            type: 'console'
-        },
         {
             type: 'file',
             filename: 'logs/server.log',
             category: 'server'
+        },
+        {
+            type: 'file',
+            filename: 'logs/elsaa.log',
+            category: 'elsaa'
         }
   ]
 });
-var logger = log4js.getLogger('server');
+var logger = global.log4js.getLogger('server');
 var us = require('underscore');
 
 function serverLogger() {
     var immediate = arguments[0];
     return function (req, res, next) {
-        // debugger;
         var sock = req.socket;
         req._startTime = new Date;
         var url = req.originalUrl || req.url;
         var method = req.method;
         var responseTime = String(Date.now() - req._startTime);
         var status = res.statusCode || null;
-        var referer = req.headers['referer'] || req.headers['referrer'];
+        debugger;
+        var referrer = req.headers['referer'] || req.headers['referrer'];
 
         var remoteAddr = null;
         if (req.ip) remoteAddr = req.ip;
@@ -54,15 +56,12 @@ function serverLogger() {
         function logRequest() {
             res.removeListener('finish', logRequest);
             res.removeListener('close', logRequest);
-            debugger;
             logger.info(util.format('%s "%s %s HTTP/%s" %s %s "%s" "%s" "response: %s ms"',
-                remoteAddr, method, url, httpVersion, status, res._headers['content-length'], referer, userAgent, responseTime));
+                remoteAddr, method, url, httpVersion, status, res._headers['content-length'], referrer || '', userAgent, responseTime));
         };
 
-        // immediate
         if (immediate) {
             logRequest();
-            // proxy end to output logging
         } else {
             res.on('finish', logRequest);
             res.on('close', logRequest);

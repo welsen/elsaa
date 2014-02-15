@@ -3,7 +3,20 @@
  */
 
 var md5 = require('crypto-js/md5');
-var logger = require('log4js').getLogger();
+var log4js = require('log4js');
+log4js.configure({
+    appenders: [
+        {
+            type: 'console'
+        },
+        {
+            type: 'file',
+            filename: 'logs/server.log',
+            category: 'server'
+        }
+  ]
+});
+var logger = log4js.getLogger('server');
 var us = require('underscore');
 
 var Main = (function () {

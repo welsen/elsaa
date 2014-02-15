@@ -1,5 +1,5 @@
 var md5 = require("crypto-js/md5");
-var logger = require('log4js').getLogger();
+var logger = global.log4js.getLogger('elsaa');
 var us = require('underscore');
 
 var Acl = (function () {
@@ -360,6 +360,7 @@ var Acl = (function () {
                         }
                     });
                 } else {
+                    logger.warn("Authentication failed for user: " + username);
                     callback(false);
                 }
             } else {
