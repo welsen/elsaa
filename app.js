@@ -14,8 +14,63 @@ var events = require('events');
 var sqlite3 = require('sqlite3').verbose();
 var md5 = require('crypto-js/md5');
 var vidStreamer = require("vid-streamer");
-var logger = require('log4js').getLogger();
+var log4js = require('log4js');
+log4js.configure({
+    appenders: [
+        {
+            type: 'console'
+        },
+        {
+            type: 'file',
+            filename: 'logs/server.log',
+            category: 'server'
+        }
+  ]
+});
+var logger = log4js.getLogger('server');
 var us = require('underscore');
+
+function serverLogger() {
+    var immediate = arguments[0];
+    return function (req, res, next) {
+        // debugger;
+        var sock = req.socket;
+        req._startTime = new Date;
+        var url = req.originalUrl || req.url;
+        var method = req.method;
+        var responseTime = String(Date.now() - req._startTime);
+        var status = res.statusCode || null;
+        var referer = req.headers['referer'] || req.headers['referrer'];
+
+        var remoteAddr = null;
+        if (req.ip) remoteAddr = req.ip;
+        if (req._remoteAddress) remoteAddr = req._remoteAddress;
+        if (sock.socket) remoteAddr = sock.socket.remoteAddress;
+        remoteAddr = sock.remoteAddress;
+
+        var httpVersion = req.httpVersionMajor + '.' + req.httpVersionMinor;
+        var userAgent = req.headers['user-agent'];
+
+        function logRequest() {
+            res.removeListener('finish', logRequest);
+            res.removeListener('close', logRequest);
+            debugger;
+            logger.info(util.format('%s "%s %s HTTP/%s" %s %s "%s" "%s" "response: %s ms"',
+                remoteAddr, method, url, httpVersion, status, res._headers['content-length'], referer, userAgent, responseTime));
+        };
+
+        // immediate
+        if (immediate) {
+            logRequest();
+            // proxy end to output logging
+        } else {
+            res.on('finish', logRequest);
+            res.on('close', logRequest);
+        }
+
+        next();
+    }
+}
 
 var Acl = require('./modules/acl').Acl;
 
@@ -83,7 +138,7 @@ function init() {
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'jade');
     app.use(express.favicon());
-    app.use(express.logger('dev'));
+    app.use(serverLogger());
     app.use(express.json());
     app.use(express.urlencoded());
     app.use(express.multipart());
