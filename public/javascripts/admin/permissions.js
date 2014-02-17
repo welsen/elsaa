@@ -1,39 +1,32 @@
 function ResetAddForm() {
-    $('#input-permission-name').val('');
-    $('#input-permission-description').val('');
-    $('#input-permission-deletable').prop('checked', false);
+    $('#add-permission div.modal-body form div div input#input-permission-name').val('');
+    $('#add-permission div.modal-body form div div textarea#input-permission-description').val('');
+    $('#add-permission div.modal-body form div div input#input-permission-deletable').prop('checked', false);
 }
 
 function AddPermission(parent, name, description, deletable, callback) {
-    $.ajax({
-        url: '/admin/permissions/add',
-        type: 'POST',
-        contentType: 'application/json; charset=utf-8',
-        data: JSON.stringify({
-            parent: parent,
-            name: name,
-            description: description,
-            deletable: deletable
-        }),
-        dataType: 'json',
-        headers: {
-            'cache-control': 'no-cache'
-        },
-        success: callback,
-        error: callback
-    });
+    AsyncRPC('/admin/permissions/add', {
+        parent: parent,
+        name: name,
+        description: description,
+        deletable: deletable
+    }, callback);
 }
 
-$('#add-permission-close-btn').click(function (e) {
+$('#add-permission div.modal-footer button#add-permission-close-btn').click(function (e) {
     ResetAddForm();
 });
-$('#add-permission-ok-btn').click(function (e) {
-    var parent = $('#input-permission-parent').select2('val');
-    var name = $('#input-permission-name').val();
-    var description = $('#input-permission-description').val();
-    var deletable = $('#input-permission-deletable').is(':checked');
+$('#add-permission div.modal-footer button#add-permission-ok-btn').click(function (e) {
+    var parent = $('#add-permission div.modal-body form div div select#input-permission-parent').select2('val');
+    var name = $('#add-permission div.modal-body form div div input#input-permission-name').val();
+    var description = $('#add-permission div.modal-body form div div textarea#input-permission-description').val();
+    var deletable = $('#add-permission div.modal-body form div div input#input-permission-deletable').is(':checked');
     AddPermission(parent, name, description, deletable, function (result) {
-        console.log(result);
+        if (result == true) {
+            AsyncRPC('/admin/permissions/all', {}, function (result) {
+                console.log(result);
+            });
+        }
     });
     ResetAddForm();
 });

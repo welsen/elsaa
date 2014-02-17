@@ -151,6 +151,16 @@ var Admin = (function () {
         }
     }
 
+    Admin.prototype.AllPermissions = function (req, res) {
+        if (req.session.adminuser) {
+            global.acl.GetPermissions(function (permissionList) {
+                res.json(permissionList);
+            });
+        } else {
+            res.redirect('/admin/login');
+        }
+    }
+
     Admin.prototype.AddPermissions = function (req, res) {
         if (req.session.adminuser) {
             var parent = req.body.parent;

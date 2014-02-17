@@ -81,21 +81,24 @@ block content
                             input#input-permission-deletable(name='deletable', data-tabindex='4', type='checkbox')
         .modal-footer
             button#add-permission-close-btn.btn(type='button', data-dismiss='modal') Close
-            button#add-permission-ok-btn.btn.btn-primary(type='button') Ok
-    #edit-permission.modal.fade.out(tabindex='-1', data-focus-on='input:first')
+            button#add-permission-ok-btn.btn.btn-primary(type='button', data-dismiss='modal') Ok
+    #edit-permission.modal.fade.out(tabindex='-1', data-focus-on='textarea:first', data-width='760')
         .modal-header
             button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
-            h3 Add Child Permission
+            h3 Modify Permission
         .modal-body
-            p One fine body…
-            p One fine body…
-            p One fine body…
-            input(type='text', data-tabindex='1')
-            input(type='text', data-tabindex='2')
-            button.btn(data-toggle='modal', href='#stack2') Launch modal
+            form.form-horizontal(role='form')
+                .form-group
+                    label.col-sm-2.control-label(for='input-permission-description') Description
+                    .col-sm-10
+                        textarea#input-permission-description.form-control(name='description', data-tabindex='1', rows=5, style='resize: none')
+                    label.col-sm-2.control-label(for='input-permission-deletable') Deletable
+                    .col-sm-10
+                        label.checkbox
+                            input#input-permission-deletable(name='deletable', data-tabindex='2', type='checkbox')
         .modal-footer
-            button.btn(type='button', data-dismiss='modal') Close
-            button.btn.btn-primary(type='button') Ok
+            button#edit-permission-close-btn.btn(type='button', data-dismiss='modal') Close
+            button#edit-permission-ok-btn.btn.btn-primary(type='button', data-dismiss='modal') Ok
     script(type='text/javascript').
         window['__elsaa_user_permissions'] = !{JSON.stringify(permissions)};
         window['__elsaa_user_permissionList'] = !{JSON.stringify(permissionList)};
