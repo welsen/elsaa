@@ -410,7 +410,7 @@ var Acl = (function () {
         });
         self.Auth[token].perms = permissions;
         callback(self.Auth[token]);
-        // delete self.Auth[token];
+        delete self.Auth[token];
     };
 
     return Acl;
