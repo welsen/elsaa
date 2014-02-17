@@ -136,15 +136,40 @@ var Admin = (function () {
 
     Admin.prototype.Permissions = function (req, res) {
         if (req.session.adminuser) {
-            global.acl.GetPermissions(function (rows) {
+            global.acl.GetPermissions(function (permissionList) {
                 res.render('admin/permissions', {
                     title: 'ELSAA Admin [Permissions]',
                     page: 'admin/permissions',
                     permissions: req.session.adminuser.permissions,
                     perms: req.session.adminuser.perms,
-                    permissionList: rows,
+                    permissionList: permissionList,
                     subpage: 'permissions'
                 });
+            });
+        } else {
+            res.redirect('/admin/login');
+        }
+    }
+
+    Admin.prototype.AddPermissions = function (req, res) {
+        if (req.session.adminuser) {
+            var parent = req.body.parent;
+            var name = req.body.name;
+            var description = req.body.description;
+            var deletable = req.body.deletable;
+            global.acl.AddPermission(name, description, parent, deletable, function () {
+                res.json(true);
+            });
+        } else {
+            res.redirect('/admin/login');
+        }
+    }
+
+    Admin.prototype.DeletePermissions = function (req, res) {
+        if (req.session.adminuser) {
+            var id = req.body.id;
+            global.acl.DeletePermission(id, function () {
+                res.json(true);
             });
         } else {
             res.redirect('/admin/login');

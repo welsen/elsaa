@@ -108,14 +108,15 @@ var Acl = (function () {
         });
     };
 
-    Acl.prototype.AddPermission = function (name, desc, parent, callback) {
+    Acl.prototype.AddPermission = function (name, desc, parent, deletable, callback) {
         var self = this;
         var now = (new Date()).getTime();
 
-        self.DB.run("INSERT INTO ACL_PERMISSIONS(NAME, DESCRIPTION, PARENT, CREATED, MODIFIED, ACTIVE) VALUES(:name, :desc, :parent, :now, :now, 1)", {
+        self.DB.run("INSERT INTO ACL_PERMISSIONS(NAME, DESCRIPTION, PARENT, CREATED, MODIFIED, DELETABLE, ACTIVE) VALUES(:name, :desc, :parent, :now, :now, :deletable, 1)", {
             ':name': name,
             ':desc': desc,
             ':parent': parent,
+            ':deletable': deletable,
             ':now': now
         }, function (error) {
             if (error == null) {
@@ -147,7 +148,7 @@ var Acl = (function () {
         var self = this;
         var now = (new Date()).getTime();
 
-        self.DB.run("UPDATE ACL_PERMISSIONS SET ACTIVE=0, MODIFIED=:now WHERE ID=:id", {
+        self.DB.run("UPDATE ACL_PERMISSIONS SET ACTIVE=0, MODIFIED=:now WHERE ID=:id AND DELETABLE = 1", {
             ':id': id,
             ':now': now
         }, function (error) {

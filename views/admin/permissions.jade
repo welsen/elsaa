@@ -1,5 +1,18 @@
 extends ../layout
 
+mixin listPermissions(permissionList)
+    each item, index in permissionList
+        - var deletable = perms["Delete Permission"] ? (item.DELETABLE==1 ? false : true) : true;
+        tr
+            td
+                input(type='checkbox', data-permission-id=item.ID)
+            td= item.NAME
+            td= item.DESCRIPTION
+            td
+                .btn-group.btn-group-xs
+                    button.btn.btn-default(disabled=perms["Modify Permission"] ? false : true, data-toggle='modal', href='#edit-permission') Modify
+                    button.btn.btn-default(disabled=deletable) Delete
+
 block content
     .navbar.navbar-inverse.navbar-fixed-top(role='navigation')
         .container-fluid
@@ -28,10 +41,63 @@ block content
             .col-sm-3.col-md-2.sidebar
                 include sidebar
             .col-sm-9.col-sm-offset-3.col-md-10.col-md-offset-2.main
-                h1.page-header Permissions
-                each value, idx in permissionList
-                    div
-                        span= value.ID
-                        span= value.NAME
-                        span= value.PARENT
-                        span= value.DESCRIPTION
+                h1.page-header Manage Permissions
+                .btn-group
+                    button.btn.btn-default(disabled=perms["Add Permission"] ? false : true, data-toggle='modal', href='#add-permission') Add Permission
+                    button.btn.btn-default(disabled=perms["Modify Permission"] ? false : true, data-toggle='modal', href='#edit-permission') Modify Permission
+                    button.btn.btn-default(disabled=perms["Delete Permission"] ? false : true, data-toggle='modal', href='#delete-permission') Delete Permission
+                .table-responsive
+                    table.table.table-striped
+                        thead
+                            tr
+                                th #
+                                th Name
+                                th Description
+                                th Actions
+                        tbody
+                            +listPermissions(permissionList)
+    #add-permission.modal.fade.out(tabindex='-1', data-focus-on='input:first', data-width='760')
+        .modal-header
+            button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+            h3 Add Permission
+        .modal-body
+            form.form-horizontal(role='form')
+                .form-group
+                    label.col-sm-2.control-label(for='input-permission-parent') Parent
+                    .col-sm-10
+                        select#input-permission-parent.select2.form-control(name='parent', type='text', data-tabindex='1')
+                            option(value=0) Root
+                            each item, index in permissionList
+                                option(value=item.ID)= item.NAME
+                    label.col-sm-2.control-label(for='input-permission-name') Name
+                    .col-sm-10
+                        input#input-permission-name.form-control(name='name', type='text', data-tabindex='2')
+                    label.col-sm-2.control-label(for='input-permission-description') Description
+                    .col-sm-10
+                        textarea#input-permission-description.form-control(name='description', data-tabindex='3', rows=5, style='resize: none')
+                    label.col-sm-2.control-label(for='input-permission-deletable') Deletable
+                    .col-sm-10
+                        label.checkbox
+                            input#input-permission-deletable(name='deletable', data-tabindex='4', type='checkbox')
+        .modal-footer
+            button#add-permission-close-btn.btn(type='button', data-dismiss='modal') Close
+            button#add-permission-ok-btn.btn.btn-primary(type='button') Ok
+    #edit-permission.modal.fade.out(tabindex='-1', data-focus-on='input:first')
+        .modal-header
+            button.close(type='button', data-dismiss='modal', aria-hidden='true') ×
+            h3 Add Child Permission
+        .modal-body
+            p One fine body…
+            p One fine body…
+            p One fine body…
+            input(type='text', data-tabindex='1')
+            input(type='text', data-tabindex='2')
+            button.btn(data-toggle='modal', href='#stack2') Launch modal
+        .modal-footer
+            button.btn(type='button', data-dismiss='modal') Close
+            button.btn.btn-primary(type='button') Ok
+    script(type='text/javascript').
+        window['__elsaa_user_permissions'] = !{JSON.stringify(permissions)};
+        window['__elsaa_user_permissionList'] = !{JSON.stringify(permissionList)};
+        $('.select2').select2();
+    script(type='text/javascript', src='/javascripts/' + page + '.js')
