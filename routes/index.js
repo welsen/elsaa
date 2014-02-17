@@ -134,6 +134,23 @@ var Admin = (function () {
         res.redirect('/login');
     };
 
+    Admin.prototype.Permissions = function (req, res) {
+        if (req.session.adminuser) {
+            global.acl.GetPermissions(function (rows) {
+                res.render('admin/permissions', {
+                    title: 'ELSAA Admin [Permissions]',
+                    page: 'admin/permissions',
+                    permissions: req.session.adminuser.permissions,
+                    perms: req.session.adminuser.perms,
+                    permissionList: rows,
+                    subpage: 'permissions'
+                });
+            });
+        } else {
+            res.redirect('/admin/login');
+        }
+    }
+
     return Admin;
 })();
 

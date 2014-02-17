@@ -96,6 +96,18 @@ var Acl = (function () {
         });
     };
 
+    Acl.prototype.GetRoles = function (callback) {
+        var self = this;
+
+        self.DB.all("SELECT * FROM V_UNDER_ROLE;", function (error, rows) {
+            if (error == null) {
+                callback(rows);
+            } else {
+                logger.error(error);
+            }
+        });
+    };
+
     Acl.prototype.AddPermission = function (name, desc, parent, callback) {
         var self = this;
         var now = (new Date()).getTime();
@@ -175,6 +187,18 @@ var Acl = (function () {
             ':name': permission.NAME,
             ':desc': permission.DESCRIPTION
         }, function (error, rows) {
+            if (error == null) {
+                callback(rows);
+            } else {
+                logger.error(error);
+            }
+        });
+    };
+
+    Acl.prototype.GetPermissions = function (callback) {
+        var self = this;
+
+        self.DB.all("SELECT * FROM V_UNDER_PERMISSION;", function (error, rows) {
             if (error == null) {
                 callback(rows);
             } else {

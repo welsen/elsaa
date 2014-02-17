@@ -168,6 +168,11 @@ function initRoutes() {
     app.post('/admin/login/authenticate', routes.admin.LoginAuthenticate);
     app.get('/admin/logout', routes.admin.Logout);
 
+    app.get('/admin/permissions', routes.admin.Permissions);
+    //    app.post('/admin/permissions/add', routes.admin.AddPermissions);
+    //    app.post('/admin/permissions/edit', routes.admin.EditPermissions);
+    //    app.post('/admin/permissions/delete', routes.admin.DeletePermissions);
+
     app.get('/videos/', vidStreamer);
 
     ElsaaEventHandler.emit('elsaa.routes.done');
