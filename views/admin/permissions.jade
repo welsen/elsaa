@@ -3,6 +3,7 @@ extends ../layout
 mixin listPermissions(permissionList)
     each item, index in permissionList
         - var deletable = perms["Delete Permission"] ? (item.DELETABLE==1 ? false : true) : true;
+        - var canModify = perms["Modify Permission"] ? false : true;
         tr
             td
                 input(type='checkbox', data-permission-id=item.ID)
@@ -10,8 +11,8 @@ mixin listPermissions(permissionList)
             td= item.DESCRIPTION
             td
                 .btn-group.btn-group-xs
-                    button.btn.btn-default(disabled=perms["Modify Permission"] ? false : true, data-toggle='modal', href='#edit-permission') Modify
-                    button.btn.btn-default(disabled=deletable) Delete
+                    button.btn.btn-default.modify-button(disabled=canModify, data-toggle='modal', href='#edit-permission', data-permission-id=item.ID) Modify
+                    button.btn.btn-default.delete-button(disabled=deletable, data-permission-id=item.ID) Delete
 
 block content
     .navbar.navbar-inverse.navbar-fixed-top(role='navigation')
@@ -98,7 +99,7 @@ block content
                     label.col-sm-2.control-label(for='input-permission-deletable') Deletable
                     .col-sm-10
                         label.checkbox
-                            input#input-permission-deletable(name='deletable', data-tabindex='2', type='checkbox')
+                            input#input-permission-deletable(name='deletable', data-tabindex='2', type='checkbox', disabled)
         .modal-footer
             button#edit-permission-close-btn.btn(type='button', data-dismiss='modal') Close
             button#edit-permission-ok-btn.btn.btn-primary(type='button', data-dismiss='modal') Ok

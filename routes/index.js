@@ -163,13 +163,17 @@ var Admin = (function () {
 
     Admin.prototype.AddPermissions = function (req, res) {
         if (req.session.adminuser) {
-            var parent = req.body.parent;
-            var name = req.body.name;
-            var description = req.body.description;
-            var deletable = req.body.deletable;
-            global.acl.AddPermission(name, description, parent, deletable, function () {
-                res.json(true);
-            });
+            if (req.session.adminuser.perms['Add Permission']) {
+                var parent = req.body.parent;
+                var name = req.body.name;
+                var description = req.body.description;
+                var deletable = req.body.deletable;
+                global.acl.AddPermission(name, description, parent, deletable, function () {
+                    res.json(true);
+                });
+            } else {
+                res.json(false);
+            }
         } else {
             res.redirect('/admin/login');
         }
@@ -177,10 +181,30 @@ var Admin = (function () {
 
     Admin.prototype.DeletePermissions = function (req, res) {
         if (req.session.adminuser) {
-            var id = req.body.id;
-            global.acl.DeletePermission(id, function () {
-                res.json(true);
-            });
+            if (req.session.adminuser.perms['Delete Permission']) {
+                var id = req.body.id;
+                global.acl.DeletePermission(id, function () {
+                    res.json(true);
+                });
+            } else {
+                res.json(false);
+            }
+        } else {
+            res.redirect('/admin/login');
+        }
+    }
+
+    Admin.prototype.EditPermissions = function (req, res) {
+        if (req.session.adminuser) {
+            if (req.session.adminuser.perms['Modify Permission']) {
+                var id = req.body.id;
+                var desc = req.body.description;
+                global.acl.UpdatePermission(id, desc, function () {
+                    res.json(true);
+                });
+            } else {
+                res.json(false);
+            }
         } else {
             res.redirect('/admin/login');
         }
