@@ -26,7 +26,7 @@ ul.nav.nav-sidebar
         +isActive('roles', subpage)
             a(href='/admin/roles') Manage Roles
     +hasPermission('Manage Users')
-        +isActive('roles', subpage)
+        +isActive('users', subpage)
             a(href='/admin/users') Manage Users
     +hasPermission('Manage Courses')
         +isActive('courses', subpage)
