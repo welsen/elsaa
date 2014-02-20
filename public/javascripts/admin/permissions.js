@@ -5,9 +5,17 @@ function ResetAddForm() {
 }
 
 function ResetEditForm() {
+    $('#edit-permission div.modal-body form div div input#input-permission-id').val('');
     $('#edit-permission div.modal-body form div div input#input-permission-name').val('');
     $('#edit-permission div.modal-body form div div textarea#input-permission-description').val('');
     $('#edit-permission div.modal-body form div div input#input-permission-deletable').prop('checked', false);
+}
+
+function ResetDeleteForm() {
+    $('#del-permission div.modal-body form div div input#input-permission-id').val('');
+    $('#del-permission div.modal-body form div div input#input-permission-name').val('');
+    $('#del-permission div.modal-body form div div textarea#input-permission-description').val('');
+    $('#del-permission div.modal-body form div div input#input-permission-deletable').prop('checked', false);
 }
 
 function AddPermission(parent, name, description, deletable, callback) {
@@ -26,18 +34,26 @@ function EditPermission(id, description, callback) {
     }, callback);
 }
 
+function DeletePermission(id, callback) {
+    AsyncRPC('/admin/permissions/delete', {
+        id: id
+    }, callback);
+}
+
 function ProcessPermission(permissionList) {
     __elsaa_user_permissionList = permissionList;
     $('#permissionListBody').empty();
     $.each(permissionList, function (index, item) {
         var deletable = __elsaa_user_perms["Delete Permission"] ? (item.DELETABLE == 1 ? false : true) : true;
         var canModify = __elsaa_user_perms["Modify Permission"];
-        var buttonGroup = '<div class="btn-group btn-group-xs"><button class="btn btn-default modify-button" ' + (canModify ? '' : 'disabled') + ' data-permission-id="' + item.ID + '">Modify</button><button class="btn btn-default delete-button" ' + (deletable ? 'disabled' : '') + ' data-permission-id="' + item.ID + '">Delete</button></div>';
+        var buttonGroup = '<div class="btn-group btn-group-xs"><button class="btn btn-default modify-button" ' + (canModify ? '' : 'disabled') + ' data-permission-id="' + item.ID + '" data-toggle="modify" data-target="#edit-permission">Modify</button><button class="btn btn-default delete-button" ' + (deletable ? 'disabled' : '') + ' data-permission-id="' + item.ID + '" data-toggle="modify" data-target="#del-permission">Delete</button></div>';
         var tr = $('<tr>').append(
             '<td><input type="checkbox" data-permission-id="' + item.ID + '"></td><td>' + item.NAME + '</td><td>' + item.DESCRIPTION + '</td><td>' + buttonGroup + '</td>'
         );
         tr.appendTo($('#permissionListBody'));
     });
+    BindModifyButtons(true);
+    BindDeleteButtons(true);
 }
 
 $('#add-permission div.modal-footer button#add-permission-close-btn').click(function (e) {
@@ -59,13 +75,11 @@ $('#add-permission div.modal-footer button#add-permission-ok-btn').click(functio
 });
 
 $('#edit-permission div.modal-footer button#edit-permission-close-btn').click(function (e) {
-    ResetAddForm();
+    ResetEditForm();
 });
 $('#edit-permission div.modal-footer button#edit-permission-ok-btn').click(function (e) {
-    var parent = $('#edit-permission div.modal-body form div div select#input-permission-parent').select2('val');
-    var name = $('#edit-permission div.modal-body form div div input#input-permission-name').val();
+    var id = $('#edit-permission div.modal-body form div div input#input-permission-id').val();
     var description = $('#edit-permission div.modal-body form div div textarea#input-permission-description').val();
-    var deletable = $('#edit-permission div.modal-body form div div input#input-permission-deletable').is(':checked');
     EditPermission(id, description, function (result) {
         if (result == true) {
             AsyncRPC('/admin/permissions/all', {}, function (result) {
@@ -73,17 +87,59 @@ $('#edit-permission div.modal-footer button#edit-permission-ok-btn').click(funct
             });
         }
     });
-    ResetAddForm();
+    ResetEditForm();
 });
 
-$('.modify-button').on({
-    'click': function (e) {
-        var btn = e.currentTarget;
-        var permission = $.grep(__elsaa_user_permissionList, function (item, index) {
-            return item.ID == $(btn).data('permissionId');
-        })[0];
-        $('#edit-permission div.modal-body form div div input#input-permission-name').val(permission.NAME);
-        $('#edit-permission div.modal-body form div div textarea#input-permission-description').val(permission.DESCRIPTION);
-        $('#edit-permission div.modal-body form div div input#input-permission-deletable').prop('checked', permission.DELETABLE == 1);
-    }
+$('#del-permission div.modal-footer button#del-permission-close-btn').click(function (e) {
+    ResetDeleteForm();
 });
+$('#del-permission div.modal-footer button#del-permission-ok-btn').click(function (e) {
+    var id = $('#del-permission div.modal-body form div div input#input-permission-id').val();
+    DeletePermission(id, function (result) {
+        if (result == true) {
+            AsyncRPC('/admin/permissions/all', {}, function (result) {
+                ProcessPermission(result);
+            });
+        }
+    });
+    ResetDeleteForm();
+});
+
+function BindModifyButtons(rebind) {
+    $('.modify-button').unbind('click').bind({
+        'click': function (e) {
+            var btn = e.currentTarget;
+            if (rebind) {
+                $($(btn).data('target')).modal('show');
+            }
+            var permission = $.grep(__elsaa_user_permissionList, function (item, index) {
+                return item.ID == $(btn).data('permissionId');
+            })[0];
+            $('#edit-permission div.modal-body form div div input#input-permission-id').val(permission.ID);
+            $('#edit-permission div.modal-body form div div input#input-permission-name').val(permission.NAME);
+            $('#edit-permission div.modal-body form div div textarea#input-permission-description').val(permission.DESCRIPTION);
+            $('#edit-permission div.modal-body form div div input#input-permission-deletable').prop('checked', permission.DELETABLE == 1);
+        }
+    });
+}
+
+function BindDeleteButtons(rebind) {
+    $('.delete-button').unbind('click').bind({
+        'click': function (e) {
+            var btn = e.currentTarget;
+            if (rebind) {
+                $($(btn).data('target')).modal('show');
+            }
+            var permission = $.grep(__elsaa_user_permissionList, function (item, index) {
+                return item.ID == $(btn).data('permissionId');
+            })[0];
+            $('#del-permission div.modal-body form div div input#input-permission-id').val(permission.ID);
+            $('#del-permission div.modal-body form div div input#input-permission-name').val(permission.NAME);
+            $('#del-permission div.modal-body form div div textarea#input-permission-description').val(permission.DESCRIPTION);
+            $('#del-permission div.modal-body form div div input#input-permission-deletable').prop('checked', permission.DELETABLE == 1);
+        }
+    });
+}
+
+BindModifyButtons();
+BindDeleteButtons();

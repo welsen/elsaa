@@ -149,7 +149,7 @@ var Admin = (function () {
         } else {
             res.redirect('/admin/login');
         }
-    }
+    };
 
     Admin.prototype.AllPermissions = function (req, res) {
         if (req.session.adminuser) {
@@ -159,7 +159,7 @@ var Admin = (function () {
         } else {
             res.redirect('/admin/login');
         }
-    }
+    };
 
     Admin.prototype.AddPermissions = function (req, res) {
         if (req.session.adminuser) {
@@ -177,7 +177,7 @@ var Admin = (function () {
         } else {
             res.redirect('/admin/login');
         }
-    }
+    };
 
     Admin.prototype.DeletePermissions = function (req, res) {
         if (req.session.adminuser) {
@@ -192,7 +192,7 @@ var Admin = (function () {
         } else {
             res.redirect('/admin/login');
         }
-    }
+    };
 
     Admin.prototype.EditPermissions = function (req, res) {
         if (req.session.adminuser) {
@@ -208,7 +208,83 @@ var Admin = (function () {
         } else {
             res.redirect('/admin/login');
         }
-    }
+    };
+
+    Admin.prototype.Roles = function (req, res) {
+        if (req.session.adminuser) {
+            global.acl.GetRoles(function (roleList) {
+                res.render('admin/roles', {
+                    title: 'ELSAA Admin [Roles]',
+                    page: 'admin/roles',
+                    roles: req.session.adminuser.roles,
+                    perms: req.session.adminuser.perms,
+                    roleList: roleList,
+                    subpage: 'roles'
+                });
+            });
+        } else {
+            res.redirect('/admin/login');
+        }
+    };
+
+    Admin.prototype.AllRoles = function (req, res) {
+        if (req.session.adminuser) {
+            global.acl.GetRoles(function (roleList) {
+                res.json(roleList);
+            });
+        } else {
+            res.redirect('/admin/login');
+        }
+    };
+
+    Admin.prototype.AddRoles = function (req, res) {
+        if (req.session.adminuser) {
+            if (req.session.adminuser.perms['Add Role']) {
+                var parent = req.body.parent;
+                var name = req.body.name;
+                var description = req.body.description;
+                var deletable = req.body.deletable;
+                global.acl.AddRole(name, description, parent, deletable, function () {
+                    res.json(true);
+                });
+            } else {
+                res.json(false);
+            }
+        } else {
+            res.redirect('/admin/login');
+        }
+    };
+
+    Admin.prototype.DeleteRoles = function (req, res) {
+        if (req.session.adminuser) {
+            if (req.session.adminuser.perms['Delete Role']) {
+                var id = req.body.id;
+                global.acl.DeleteRole(id, function () {
+                    res.json(true);
+                });
+            } else {
+                res.json(false);
+            }
+        } else {
+            res.redirect('/admin/login');
+        }
+    };
+
+    Admin.prototype.EditRoles = function (req, res) {
+        if (req.session.adminuser) {
+            if (req.session.adminuser.perms['Modify Role']) {
+                var id = req.body.id;
+                var desc = req.body.description;
+                global.acl.UpdateRole(id, desc, function () {
+                    res.json(true);
+                });
+            } else {
+                res.json(false);
+            }
+        } else {
+            res.redirect('/admin/login');
+        }
+    };
 
     return Admin;
 })();

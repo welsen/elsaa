@@ -122,7 +122,19 @@ var Acl = (function () {
             if (error == null) {
                 callback();
             } else {
-                logger.error(error);
+                self.DB.run("UPDATE ACL_PERMISSIONS SET DESCRIPTION=:desc, MODIFIED=:now, DELETABLE=:deletable, PARENT=:parent, ACTIVE=1 WHERE NAME=:name", {
+                    ':name': name,
+                    ':desc': desc,
+                    ':parent': parent,
+                    ':deletable': deletable,
+                    ':now': now
+                }, function (error) {
+                    if (error == null) {
+                        callback();
+                    } else {
+                        logger.error(error);
+                    }
+                });
             }
         });
     };
@@ -148,7 +160,7 @@ var Acl = (function () {
         var self = this;
         var now = (new Date()).getTime();
 
-        self.DB.run("UPDATE ACL_PERMISSIONS SET ACTIVE=0, MODIFIED=:now WHERE ID=:id AND DELETABLE = 1", {
+        self.DB.run("UPDATE ACL_PERMISSIONS SET ACTIVE=0, MODIFIED=:now WHERE ID=:id AND DELETABLE=1", {
             ':id': id,
             ':now': now
         }, function (error) {

@@ -174,6 +174,12 @@ function initRoutes() {
     app.post('/admin/permissions/edit', routes.admin.EditPermissions);
     app.post('/admin/permissions/delete', routes.admin.DeletePermissions);
 
+    app.get('/admin/roles', routes.admin.Roles);
+    app.post('/admin/roles/all', routes.admin.AllRoles);
+    app.post('/admin/roles/add', routes.admin.AddRoles);
+    app.post('/admin/roles/edit', routes.admin.EditRoles);
+    app.post('/admin/roles/delete', routes.admin.DeleteRoles);
+
     app.get('/videos/', vidStreamer);
 
     ElsaaEventHandler.emit('elsaa.routes.done');
