@@ -11,20 +11,33 @@ var Acl = (function () {
         var self = this;
     }
 
-    Acl.prototype.AddRole = function (name, desc, parent, callback) {
+    Acl.prototype.AddRole = function (name, desc, parent, deletable, callback) {
         var self = this;
         var now = (new Date()).getTime();
 
-        self.DB.run("INSERT INTO ACL_ROLES(NAME, DESCRIPTION, PARENT, CREATED, MODIFIED, ACTIVE) VALUES(:name, :desc, :parent, :now, :now, 1)", {
+        self.DB.run("INSERT INTO ACL_ROLES(NAME, DESCRIPTION, PARENT, CREATED, MODIFIED, DELETABLE, ACTIVE) VALUES(:name, :desc, :parent, :now, :now, :deletable, 1)", {
             ':name': name,
             ':desc': desc,
             ':parent': parent,
+            ':deletable': deletable,
             ':now': now
         }, function (error) {
             if (error == null) {
                 callback();
             } else {
-                logger.error(error);
+                self.DB.run("UPDATE ACL_ROLES SET DESCRIPTION=:desc, MODIFIED=:now, DELETABLE=:deletable, PARENT=:parent, ACTIVE=1 WHERE NAME=:name", {
+                    ':name': name,
+                    ':desc': desc,
+                    ':parent': parent,
+                    ':deletable': deletable,
+                    ':now': now
+                }, function (error) {
+                    if (error == null) {
+                        callback();
+                    } else {
+                        logger.error(error);
+                    }
+                });
             }
         });
     };
