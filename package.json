@@ -1,7 +1,7 @@
 {
     "name": "elsaa",
-    "description": "Jade template engine",
-    "version": "0.0.1",
+    "description": "ELSAA",
+    "version": "1.0.0",
     "scripts": {
         "start": "node app.js"
     },

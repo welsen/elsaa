@@ -242,6 +242,8 @@ function startElsaa() {
     logger.info("Starting ELSAA...");
     acl = global.acl = new Acl(db);
 
+    app.get('/admin/users', routes.admin.Users);
+
     //    acl.AddRole('administrator', 'administrator', null);
     //    acl.AddRole('moderator', 'moderator', 1);
     //    acl.GetRolesUnder(1, function (data) {

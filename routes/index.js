@@ -286,6 +286,23 @@ var Admin = (function () {
         }
     };
 
+    Admin.prototype.Users = function (req, res) {
+        if (req.session.adminuser) {
+            global.acl.GetUsers(function (userList) {
+                res.render('admin/permissions', {
+                    title: 'ELSAA Admin [Permissions]',
+                    page: 'admin/permissions',
+                    users: req.session.adminuser.permissions,
+                    perms: req.session.adminuser.perms,
+                    userList: permissionList,
+                    subpage: 'permissions'
+                });
+            });
+        } else {
+            res.redirect('/admin/login');
+        }
+    };
+
     return Admin;
 })();
 
