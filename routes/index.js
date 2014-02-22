@@ -289,13 +289,13 @@ var Admin = (function () {
     Admin.prototype.Users = function (req, res) {
         if (req.session.adminuser) {
             global.acl.GetUsers(function (userList) {
-                res.render('admin/permissions', {
-                    title: 'ELSAA Admin [Permissions]',
-                    page: 'admin/permissions',
+                res.render('admin/users', {
+                    title: 'ELSAA Admin [Users]',
+                    page: 'admin/users',
                     users: req.session.adminuser.permissions,
                     perms: req.session.adminuser.perms,
-                    userList: permissionList,
-                    subpage: 'permissions'
+                    userList: userList,
+                    subpage: 'users'
                 });
             });
         } else {

@@ -10,7 +10,6 @@ block content
                 h1.page-header Manage Roles
     script(type='text/javascript').
         window['__elsaa_user_perms'] = !{JSON.stringify(perms)};
-        window['__elsaa_user_roles'] = [];
-        window['__elsaa_user_roleList'] = !{JSON.stringify(roleList)};
+        window['__elsaa_user_userList'] = !{JSON.stringify(userList)};
         $('.select2').select2();
     script(type='text/javascript', src='/javascripts/' + page + '.js')

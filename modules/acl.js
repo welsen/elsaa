@@ -352,6 +352,18 @@ var Acl = (function () {
         });
     };
 
+    Acl.prototype.GetUsers = function (callback) {
+        var self = this;
+
+        self.DB.all("SELECT * FROM ACL_USERS;", function (error, rows) {
+            if (error == null) {
+                callback(rows);
+            } else {
+                logger.error(error);
+            }
+        });
+    }
+
     Acl.prototype.Authenticate = function (username, password, callback) {
         var self = this;
         var token = md5((new Date()).getTime().toString()).toString();

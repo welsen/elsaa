@@ -92,7 +92,6 @@ block content
             button#del-role-ok-btn.btn.btn-primary(type='button', data-dismiss='modal') Ok
     script(type='text/javascript').
         window['__elsaa_user_perms'] = !{JSON.stringify(perms)};
-        window['__elsaa_user_roles'] = [];
         window['__elsaa_user_roleList'] = !{JSON.stringify(roleList)};
         $('.select2').select2();
     script(type='text/javascript', src='/javascripts/' + page + '.js')

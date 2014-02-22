@@ -31,6 +31,7 @@ global.log4js.configure({
 });
 var logger = global.log4js.getLogger('server');
 var us = require('underscore');
+var SQLiteStore = require('connect-sqlite3')(express);
 
 function serverLogger() {
     var immediate = arguments[0];
@@ -97,7 +98,7 @@ ElsaaEventHandler.on('elsaa.server.done', function () {
 });
 
 var sessionSecret = md5('ELSAA').toString();
-var dbPath = path.join(__dirname, 'database', 'elsaa.sq3');
+var dbPath = path.join(__dirname, 'database', 'elsaa.db');
 
 var privateKey = fs.readFileSync(path.join(__dirname, 'ssl', 'localhost.key')).toString();
 var certRequest = fs.readFileSync(path.join(__dirname, 'ssl', 'localhost.csr')).toString();
@@ -143,6 +144,10 @@ function init() {
     app.use(express.multipart());
     app.use(express.cookieParser());
     app.use(express.session({
+        store: new SQLiteStore({
+            dir: './database/',
+            db: 'elsaa'
+        }),
         secret: sessionSecret
     }));
     app.use(express.methodOverride());
