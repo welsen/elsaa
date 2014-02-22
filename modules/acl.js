@@ -355,7 +355,7 @@ var Acl = (function () {
     Acl.prototype.GetUsers = function (callback) {
         var self = this;
 
-        self.DB.all("SELECT * FROM ACL_USERS;", function (error, rows) {
+        self.DB.all("SELECT ID, USERNAME, FULLNAME, EMAIL, TYPE FROM ACL_USERS;", function (error, rows) {
             if (error == null) {
                 callback(rows);
             } else {

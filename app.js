@@ -185,6 +185,8 @@ function initRoutes() {
     app.post('/admin/roles/edit', routes.admin.EditRoles);
     app.post('/admin/roles/delete', routes.admin.DeleteRoles);
 
+    app.get('/admin/users', routes.admin.Users);
+
     app.get('/videos/', vidStreamer);
 
     ElsaaEventHandler.emit('elsaa.routes.done');
@@ -246,8 +248,6 @@ function initDatabase() {
 function startElsaa() {
     logger.info("Starting ELSAA...");
     acl = global.acl = new Acl(db);
-
-    app.get('/admin/users', routes.admin.Users);
 
     //    acl.AddRole('administrator', 'administrator', null);
     //    acl.AddRole('moderator', 'moderator', 1);
