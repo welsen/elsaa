@@ -286,7 +286,8 @@ var Acl = (function () {
             ':rid': roleId,
             ':uid': userId
         }, function (error) {
-            if (error == null) {
+            if (error == null && this.changes != 0) {
+                debugger;
                 callback();
             } else {
                 self.DB.run("INSERT INTO ACL_USERROLES(USERID, ROLEID, CREATED, MODIFIED, ACTIVE) VALUES(:uid, :rid, :now, :now, 1)", {
@@ -294,6 +295,7 @@ var Acl = (function () {
                     ':rid': roleId,
                     ':uid': userId
                 }, function (error) {
+                    debugger;
                     if (error == null) {
                         callback();
                     } else {
@@ -345,7 +347,7 @@ var Acl = (function () {
             ':mnow': now
         }, function (error) {
             if (error == null) {
-                callback();
+                self.AssignUserRole(this.lastID, 5, callback);
             } else {
                 logger.error(error);
             }
@@ -355,7 +357,7 @@ var Acl = (function () {
     Acl.prototype.GetUsers = function (callback) {
         var self = this;
 
-        self.DB.all("SELECT ID, USERNAME, FULLNAME, EMAIL, TYPE FROM ACL_USERS;", function (error, rows) {
+        self.DB.all("SELECT ID, USERNAME, FULLNAME, EMAIL, TYPE, ACTIVE FROM ACL_USERS;", function (error, rows) {
             if (error == null) {
                 callback(rows);
             } else {

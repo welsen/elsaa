@@ -42,7 +42,6 @@ function serverLogger() {
         var method = req.method;
         var responseTime = String(Date.now() - req._startTime);
         var status = res.statusCode || null;
-        debugger;
         var referrer = req.headers['referer'] || req.headers['referrer'];
 
         var remoteAddr = null;
@@ -137,6 +136,7 @@ function init() {
     app.set('port-https', 8443);
     app.set('views', path.join(__dirname, 'views'));
     app.set('view engine', 'jade');
+    app.use(express.compress());
     app.use(express.favicon());
     app.use(serverLogger());
     app.use(express.json());
@@ -146,7 +146,8 @@ function init() {
     app.use(express.session({
         store: new SQLiteStore({
             dir: './database/',
-            db: 'elsaa'
+            db: 'elsaa',
+            table: 'ELSAA_SESSION'
         }),
         secret: sessionSecret
     }));
@@ -186,6 +187,8 @@ function initRoutes() {
     app.post('/admin/roles/delete', routes.admin.DeleteRoles);
 
     app.get('/admin/users', routes.admin.Users);
+    app.post('/admin/users/all', routes.admin.AllUsers);
+    app.post('/admin/users/add', routes.admin.AddUsers);
 
     app.get('/videos/', vidStreamer);
 

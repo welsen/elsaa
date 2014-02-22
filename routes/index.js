@@ -303,6 +303,34 @@ var Admin = (function () {
         }
     };
 
+    Admin.prototype.AllUsers = function (req, res) {
+        if (req.session.adminuser) {
+            global.acl.GetUsers(function (userList) {
+                res.json(userList);
+            });
+        } else {
+            res.redirect('/admin/login');
+        }
+    };
+
+    Admin.prototype.AddUsers = function (req, res) {
+        if (req.session.adminuser) {
+            if (req.session.adminuser.perms['Add User']) {
+                var username = req.body.username;
+                var password = req.body.password;
+                var fullname = req.body.fullname;
+                var email = req.body.email;
+                global.acl.AddLocalUser(username, password, fullname, email, function () {
+                    res.json(true);
+                });
+            } else {
+                res.json(false);
+            }
+        } else {
+            res.redirect('/admin/login');
+        }
+    };
+
     return Admin;
 })();
 
