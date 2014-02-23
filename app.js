@@ -192,6 +192,10 @@ function initRoutes() {
 
     app.get('/videos/', vidStreamer);
 
+    loadDynamicModules();
+}
+
+function loadDynamicModules() {
     global.db.all("SELECT * FROM ELSAA_EXTERNAL_MODULES;", function (error, rows) {
         if (error == null) {
             rows.forEach(function (extModule) {
@@ -217,7 +221,6 @@ function initRoutes() {
         }
     });
 }
-
 
 function initWebsocket(websocket, server, secure) {
     websocket = io.listen(server, {
