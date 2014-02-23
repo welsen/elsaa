@@ -192,8 +192,32 @@ function initRoutes() {
 
     app.get('/videos/', vidStreamer);
 
-    ElsaaEventHandler.emit('elsaa.routes.done');
+    global.db.all("SELECT * FROM ELSAA_EXTERNAL_MODULES;", function (error, rows) {
+        if (error == null) {
+            rows.forEach(function (extModule) {
+                (function () {
+                    global[extModule.NAME] = require('./modules/' + extModule.NAME);
+                    console.log(global[extModule.NAME]);
+                })();
+                global.db.all('SELECT * FROM ELSAA_MODULE_ROUTES WHERE MODULEID=:id;', {
+                    ':id': extModule.ID
+                }, function (innerError, innerRows) {
+                    if (innerError == null) {
+                        innerRows.forEach(function (moduleRoute) {
+                            (new Function("app", "app." + moduleRoute.TYPE + "('" + moduleRoute.ROUTE + "', " + moduleRoute.CALL + ");"))(app);
+                        });
+                    } else {
+                        logger.error("Creating Module Routes failed...");
+                    }
+                });
+            });
+            ElsaaEventHandler.emit('elsaa.routes.done');
+        } else {
+            logger.error("Loading Modules failed...");
+        }
+    });
 }
+
 
 function initWebsocket(websocket, server, secure) {
     websocket = io.listen(server, {
