@@ -57,9 +57,10 @@ function askModuleRoutes() {
 }
 
 var ElsaaModule = (function () {
-    function ElsaaModule(name, desc, routes) {
+    function ElsaaModule(name, desc, version, routes) {
         this.name = name;
         this.desc = desc;
+        this.versio = version;
         this.routes = routes;
         this.viewsFiles = {};
         this.jsFiles = {};
@@ -102,6 +103,7 @@ var ElsaaModule = (function () {
         var meta = {
             name: this.name,
             description: this.desc,
+            version: this.version,
         }
         var routes = this.routes;
         return JSON.stringify({
@@ -121,7 +123,7 @@ var ElsaaModule = (function () {
 
 function compressModule() {
     console.log("creating compressed elsaa module file");
-    var elsaaModule = new ElsaaModule(moduleName, moduleDesc, moduleRoutes);
+    var elsaaModule = new ElsaaModule(moduleName, moduleDesc, moduleVersion, moduleRoutes);
 
     zlib.gzip(new Buffer(new Buffer(JSON.stringify(elsaaModule)).toString('base64')), function (err, buffer) {
         if (!err) {
