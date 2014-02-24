@@ -43,7 +43,7 @@ function askModuleRoutes() {
             moduleCall = answer;
             moduleRoutes.push({
                 route: moduleRoute,
-                call: moduleCall
+                call: /^global\..*/.test(moduleCall) ? moduleCall : 'global.' + moduleCall
             });
             rl.question("Add more routes (default: no)? ", function (answer) {
                 if (/^(y|Y|yes|Yes|YES)$/.test(answer)) {
