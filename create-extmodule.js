@@ -20,13 +20,17 @@ EventHandler.on('ask.module.routes', askModuleRoutes);
 
 var moduleName = "";
 var moduleDesc = "";
+var moduleVersion = "";
 var moduleRoutes = [];
 
 rl.question("Module Name: ", function (answer) {
     moduleName = answer;
     rl.question("Module Description: ", function (answer) {
         moduleDesc = answer;
-        EventHandler.emit('ask.module.routes');
+        rl.question("Module Version: ", function (answer) {
+            moduleVersion = answer;
+            EventHandler.emit('ask.module.routes');
+        });
     });
 });
 
