@@ -7,7 +7,7 @@ mixin listPermissions(permissionList)
         tr
             td
                 input(type='checkbox', data-permission-id=item.ID)
-            td= item.NAME
+            td= ("-------".slice(0, (item.PARENT -1))) + " " + item.NAME
             td= item.DESCRIPTION
             td
                 .btn-group.btn-group-xs

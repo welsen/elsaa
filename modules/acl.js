@@ -243,19 +243,23 @@ var Acl = (function () {
             ':pid': permissionId
         }, function (error) {
             if (error == null) {
-                callback();
+                if (this.changes != 0) {
+                    callback();
+                } else {
+                    self.DB.run("INSERT INTO ACL_ROLEPERMISSIONS(ROLEID, PERMISSIONID, CREATED, MODIFIED, ACTIVE) VALUES(:rid, :pid, :now, :now, 1)", {
+                        ':now': now,
+                        ':rid': roleId,
+                        ':pid': permissionId
+                    }, function (error) {
+                        if (error == null) {
+                            callback();
+                        } else {
+                            logger.error(error);
+                        }
+                    });
+                }
             } else {
-                self.DB.run("INSERT INTO ACL_ROLEPERMISSIONS(ROLEID, PERMISSIONID, CREATED, MODIFIED, ACTIVE) VALUES(:rid, :pid, :now, :now, 1)", {
-                    ':now': now,
-                    ':rid': roleId,
-                    ':pid': permissionId
-                }, function (error) {
-                    if (error == null) {
-                        callback();
-                    } else {
-                        logger.error(error);
-                    }
-                });
+                logger.error(error);
             }
         });
     };
@@ -271,6 +275,23 @@ var Acl = (function () {
         }, function (error) {
             if (error == null) {
                 callback();
+            } else {
+                logger.error(error);
+            }
+        });
+    };
+
+    Acl.prototype.GetRolePermissions = function (roleId, callback) {
+        var self = this;
+        self.DB.all("SELECT P.* FROM ACL_PERMISSIONS P,\
+                    (SELECT P.* FROM ACL_PERMISSIONS P, ACL_ROLEPERMISSIONS RP, V_UNDER_ROLE UR WHERE (RP.ROLEID = :roleId OR UR.PARENT >= :roleId)AND RP.PERMISSIONID = P.ID AND UR.ID = RP.ROLEID AND RP.ACTIVE = 1) L\
+                    WHERE P.PARENT = L.ID\
+                    UNION\
+                    SELECT P.* FROM ACL_PERMISSIONS P, ACL_ROLEPERMISSIONS RP, V_UNDER_ROLE UR WHERE (RP.ROLEID = :roleId OR UR.PARENT >= :roleId)AND RP.PERMISSIONID = P.ID AND UR.ID = RP.ROLEID AND RP.ACTIVE = 1;", {
+            ':roleId': roleId
+        }, function (error, rows) {
+            if (error == null) {
+                callback(rows);
             } else {
                 logger.error(error);
             }

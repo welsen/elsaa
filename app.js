@@ -185,6 +185,8 @@ function initRoutes() {
     app.post('/admin/roles/add', routes.admin.AddRoles);
     app.post('/admin/roles/edit', routes.admin.EditRoles);
     app.post('/admin/roles/delete', routes.admin.DeleteRoles);
+    app.post('/admin/roles/permissions', routes.admin.GetRolePermissions);
+    app.post('/admin/roles/permissions/set', routes.admin.SetRolePermissions);
 
     app.get('/admin/users', routes.admin.Users);
     app.post('/admin/users/all', routes.admin.AllUsers);

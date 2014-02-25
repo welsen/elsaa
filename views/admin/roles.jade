@@ -20,6 +20,12 @@ block content
                                 th Actions
                         tbody#roleListBody
                             // roleList
+                .table-responsive(style="overflow: scroll")
+                    table.table.table-striped
+                        thead
+                            tr#rolePermissionsHead
+                        tbody#rolePermissionsBody
+                            // roleList
     #add-role.modal.fade.out(tabindex='-1', data-focus-on='input:first', data-width='760')
         .modal-header
             button.close(type='button', data-dismiss='modal', aria-hidden='true') ×

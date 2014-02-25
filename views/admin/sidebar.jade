@@ -19,10 +19,10 @@ ul.nav.nav-sidebar
     +isActive('export', subpage)
         a(href='/admin/export') Export
 ul.nav.nav-sidebar
-    +hasPermission('Manage Roles')
+    +hasPermission('Manage Roles and Permissions')
         +isActive('permissions', subpage)
             a(href='/admin/permissions') Manage Permissions
-    +hasPermission('Manage Roles')
+    +hasPermission('Manage Roles and Permissions')
         +isActive('roles', subpage)
             a(href='/admin/roles') Manage Roles
     +hasPermission('Manage Users')

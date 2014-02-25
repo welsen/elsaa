@@ -286,6 +286,44 @@ var Admin = (function () {
         }
     };
 
+    Admin.prototype.GetRolePermissions = function (req, res) {
+        if (req.session.adminuser) {
+            if (req.session.adminuser.perms['Modify Role']) {
+                var id = req.body.roleId;
+                global.acl.GetRolePermissions(id, function (data) {
+                    res.json(data);
+                });
+            } else {
+                res.json(false);
+            }
+        } else {
+            res.redirect('/admin/login');
+        }
+    }
+
+    Admin.prototype.SetRolePermissions = function (req, res) {
+        if (req.session.adminuser) {
+            if (req.session.adminuser.perms['Modify Role']) {
+                var roleId = req.body.roleId;
+                var permissionId = req.body.permissionId;
+                var link = req.body.link;
+                if (link) {
+                    global.acl.LinkPermissionRole(permissionId, roleId, function () {
+                        res.json(true);
+                    });
+                } else {
+                    global.acl.UnLinkPermissionRole(permissionId, roleId, function () {
+                        res.json(true);
+                    });
+                }
+            } else {
+                res.json(false);
+            }
+        } else {
+            res.redirect('/admin/login');
+        }
+    }
+
     Admin.prototype.Users = function (req, res) {
         if (req.session.adminuser) {
             global.acl.GetUsers(function (userList) {

@@ -56,6 +56,50 @@ function ProcessRole(roleList) {
     BindDeleteButtons(true);
 }
 
+function ProceddRolePermissionLinks() {
+    $('#rolePermissionsHead').empty();
+    $('#rolePermissionsHead').append($('<th>'));
+    $.each(__elsaa_permissionList, function (index, item) {
+        $('#rolePermissionsHead').append($('<th>').html(item.NAME));
+    });
+    $('#rolePermissionsBody').empty();
+    $.each(__elsaa_user_roleList, function (index, item) {
+        __elsaa_user_roleList[index]['permissions'] = SyncRPC('/admin/roles/permissions', {
+            roleId: item.ID
+        });
+        var $row = $('<tr>');
+        $row.append($('<td>').html(item.NAME));
+        $.each(__elsaa_permissionList, function (innerIndex, innerItem) {
+            var linked = _.findWhere(__elsaa_user_roleList[index]['permissions'], {
+                ID: innerItem.ID
+            }) != undefined;
+            $row.append($('<td>').append($('<input>').attr({
+                type: 'checkbox',
+                'data-permission-id': innerItem.ID,
+                'data-role-id': item.ID
+            }).prop('checked', linked).addClass('permission-role')));
+        });
+        $row.appendTo($('#rolePermissionsBody'));
+    });
+    $('.permission-role').change(function (e) {
+        var $cb = $(e.currentTarget);
+        // console.log($cb.is(':checked'), $cb.data('permissionId'), $cb.data('roleId'));
+        AsyncRPC('/admin/roles/permissions/set', {
+            permissionId: $cb.data('permissionId'),
+            roleId: $cb.data('roleId'),
+            link: $cb.is(':checked')
+        }, function (result) {
+            AsyncRPC('/admin/roles/all', {}, function (result) {
+                ProcessRole(result);
+                AsyncRPC('/admin/permissions/all', {}, function (result) {
+                    window['__elsaa_permissionList'] = result;
+                    ProceddRolePermissionLinks();
+                });
+            });
+        });
+    });
+}
+
 $('#add-role div.modal-footer button#add-role-close-btn').click(function (e) {
     ResetAddForm();
 });
@@ -68,6 +112,10 @@ $('#add-role div.modal-footer button#add-role-ok-btn').click(function (e) {
         if (result == true) {
             AsyncRPC('/admin/roles/all', {}, function (result) {
                 ProcessRole(result);
+                AsyncRPC('/admin/permissions/all', {}, function (result) {
+                    window['__elsaa_permissionList'] = result;
+                    ProceddRolePermissionLinks();
+                });
             });
         }
     });
@@ -99,6 +147,10 @@ $('#del-role div.modal-footer button#del-role-ok-btn').click(function (e) {
         if (result == true) {
             AsyncRPC('/admin/roles/all', {}, function (result) {
                 ProcessRole(result);
+                AsyncRPC('/admin/permissions/all', {}, function (result) {
+                    window['__elsaa_permissionList'] = result;
+                    ProceddRolePermissionLinks();
+                });
             });
         }
     });
@@ -146,4 +198,8 @@ BindDeleteButtons();
 
 AsyncRPC('/admin/roles/all', {}, function (result) {
     ProcessRole(result);
+    AsyncRPC('/admin/permissions/all', {}, function (result) {
+        window['__elsaa_permissionList'] = result;
+        ProceddRolePermissionLinks();
+    });
 });
