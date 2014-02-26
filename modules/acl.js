@@ -8,6 +8,7 @@ var Acl = (function () {
     function Acl(db) {
         this.DB = db;
         this.Auth = {};
+        this.__ROLE = {};
         var self = this;
     }
 
@@ -90,15 +91,45 @@ var Acl = (function () {
         var self = this;
 
         self.DB.all("WITH RECURSIVE\
-                UNDER_ROLE(NAME,PARENT,DESCRIPTION,ID) AS (\
-                    SELECT '' AS NAME, 0 AS PARENT, '' AS DESCRIPTION, :id AS ID\
+                UNDER_ROLE(NAME,LEVEL,DESCRIPTION,ID, PARENT) AS (\
+                    SELECT ACL_ROLES.NAME, 0 AS LEVEL, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID, ACL_ROLES.PARENT\
+                        FROM ACL_ROLES\
+                        WHERE ACL_ROLES.ID = :id\
                     UNION ALL\
-                    SELECT ACL_ROLES.NAME, UNDER_ROLE.PARENT + 1, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID\
+                    SELECT ACL_ROLES.NAME, UNDER_ROLE.LEVEL + 1, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID, ACL_ROLES.PARENT\
                         FROM ACL_ROLES JOIN UNDER_ROLE ON ACL_ROLES.PARENT=UNDER_ROLE.ID\
                         WHERE ACL_ROLES.ACTIVE = 1\
                         ORDER BY 2 DESC\
                 )\
-            SELECT ID, NAME, PARENT, DESCRIPTION FROM UNDER_ROLE WHERE PARENT > 0;", {
+            SELECT ID, NAME, PARENT, DESCRIPTION FROM UNDER_ROLE;", {
+            ':id': id
+        }, function (error, rows) {
+            if (error == null) {
+                callback(rows);
+            } else {
+                logger.error(error);
+            }
+        });
+    };
+
+    Acl.prototype.GetRootPermissionsForRoles = function (id, callback) {
+        var self = this;
+
+        self.DB.all("WITH RECURSIVE\
+                UNDER_ROLE(NAME,LEVEL,DESCRIPTION,ID, PARENT) AS (\
+                    SELECT ACL_ROLES.NAME, 0 AS LEVEL, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID, ACL_ROLES.PARENT\
+                        FROM ACL_ROLES\
+                        WHERE ACL_ROLES.ID = :id\
+                    UNION ALL\
+                    SELECT ACL_ROLES.NAME, UNDER_ROLE.LEVEL + 1, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID, ACL_ROLES.PARENT\
+                        FROM ACL_ROLES JOIN UNDER_ROLE ON ACL_ROLES.PARENT=UNDER_ROLE.ID\
+                        WHERE ACL_ROLES.ACTIVE = 1\
+                        ORDER BY 2 DESC\
+                )\
+            SELECT DISTINCT ACL_PERMISSIONS.*\
+                FROM UNDER_ROLE\
+                JOIN ACL_ROLEPERMISSIONS ON UNDER_ROLE.ID = ACL_ROLEPERMISSIONS.ROLEID\
+                JOIN ACL_PERMISSIONS ON ACL_ROLEPERMISSIONS.PERMISSIONID = ACL_PERMISSIONS.ID;", {
             ':id': id
         }, function (error, rows) {
             if (error == null) {
@@ -200,18 +231,21 @@ var Acl = (function () {
         var self = this;
 
         self.DB.all("WITH RECURSIVE\
-                        UNDER_PERMISSION(NAME,PARENT,DESCRIPTION,ID) AS (\
-                            SELECT :name AS NAME, 0 AS PARENT, :desc AS DESCRIPTION, :id AS ID\
+                        UNDER_PERMISSION(NAME,LEVEL,DESCRIPTION,ID,PARENT,ACTIVE,DELETABLE) AS (\
+                            SELECT :name AS NAME, 0 AS LEVEL, :desc AS DESCRIPTION, :id AS ID, :parent AS PARENT, :active AS ACTIVE, :deletable AS DELETABLE\
                             UNION ALL\
-                            SELECT ACL_PERMISSIONS.NAME, UNDER_PERMISSION.PARENT + 1, ACL_PERMISSIONS.DESCRIPTION, ACL_PERMISSIONS.ID\
+                            SELECT ACL_PERMISSIONS.NAME, UNDER_PERMISSION.LEVEL + 1, ACL_PERMISSIONS.DESCRIPTION, ACL_PERMISSIONS.ID, ACL_PERMISSIONS.PARENT, ACL_PERMISSIONS.ACTIVE, ACL_PERMISSIONS.DELETABLE\
                                 FROM ACL_PERMISSIONS JOIN UNDER_PERMISSION ON ACL_PERMISSIONS.PARENT=UNDER_PERMISSION.ID\
                                 WHERE ACL_PERMISSIONS.ACTIVE = 1\
                                 ORDER BY 2 DESC\
                         )\
-                    SELECT ID, NAME, PARENT, DESCRIPTION FROM UNDER_PERMISSION;", {
+                    SELECT ID, NAME, LEVEL, DESCRIPTION, PARENT, DELETABLE, ACTIVE FROM UNDER_PERMISSION;", {
             ':id': permission.ID,
             ':name': permission.NAME,
-            ':desc': permission.DESCRIPTION
+            ':desc': permission.DESCRIPTION,
+            ':parent': permission.PARENT,
+            ':deletable': permission.DELETABLE,
+            ':active': permission.ACTIVE
         }, function (error, rows) {
             if (error == null) {
                 callback(rows);
@@ -268,8 +302,7 @@ var Acl = (function () {
         var self = this;
         var now = (new Date()).getTime();
 
-        self.DB.run("UPDATE ACL_ROLEPERMISSIONS SET ACTIVE=0, MODIFIED=:now WHERE ROLEID=:rid AND PERMISSIONID=:pid", {
-            ':now': now,
+        self.DB.run("DELETE FROM ACL_ROLEPERMISSIONS WHERE ROLEID=:rid AND PERMISSIONID=:pid", {
             ':rid': roleId,
             ':pid': permissionId
         }, function (error) {
@@ -283,19 +316,44 @@ var Acl = (function () {
 
     Acl.prototype.GetRolePermissions = function (roleId, callback) {
         var self = this;
-        self.DB.all("SELECT P.* FROM ACL_PERMISSIONS P,\
-                    (SELECT P.* FROM ACL_PERMISSIONS P, ACL_ROLEPERMISSIONS RP, V_UNDER_ROLE UR WHERE (RP.ROLEID = :roleId OR UR.PARENT >= :roleId)AND RP.PERMISSIONID = P.ID AND UR.ID = RP.ROLEID AND RP.ACTIVE = 1) L\
-                    WHERE P.PARENT = L.ID\
-                    UNION\
-                    SELECT P.* FROM ACL_PERMISSIONS P, ACL_ROLEPERMISSIONS RP, V_UNDER_ROLE UR WHERE (RP.ROLEID = :roleId OR UR.PARENT >= :roleId)AND RP.PERMISSIONID = P.ID AND UR.ID = RP.ROLEID AND RP.ACTIVE = 1;", {
-            ':roleId': roleId
-        }, function (error, rows) {
-            if (error == null) {
-                callback(rows);
-            } else {
-                logger.error(error);
+        self.GetRootPermissionsForRoles(roleId, function (rows) {
+            var token = (new Date()).getTime();
+            self.__ROLE[token] = {
+                'permissions': []
+            };
+            self.__ROLE[token].rolecount = rows.length;
+            self.__ROLE[token].c = 0;
+            for (var idx in rows) {
+                var permission = rows[idx];
+                self.GetPermissionsUnder(permission, function (data) {
+                    data.forEach(function (perm) {
+                        var exists = us.findWhere(self.__ROLE[token].permissions, perm) != undefined;
+                        if (!exists) {
+                            self.__ROLE[token].permissions.push(perm);
+                        }
+                    });
+                    self.__ROLE[token].c++;
+                    // debugger;
+                    if (self.IsGetRolePermissionReady(self.__ROLE[token].c, token)) {
+                        self.OnGetRolePermissionDone(token, callback);
+                    }
+                });
+            };
+            if (self.IsGetRolePermissionReady(self.__ROLE[token].c, token)) {
+                self.OnGetRolePermissionDone(token, callback);
             }
         });
+    };
+
+    Acl.prototype.IsGetRolePermissionReady = function (c, token) {
+        var self = this;
+        return c == self.__ROLE[token].rolecount;
+    };
+
+    Acl.prototype.OnGetRolePermissionDone = function (token, callback) {
+        var self = this;
+        callback(self.__ROLE[token].permissions);
+        delete self.__ROLE[token];
     };
 
     Acl.prototype.AssignUserRole = function (userId, roleId, callback) {
@@ -403,21 +461,13 @@ var Acl = (function () {
                         'permissions': []
                     };
                     self.DB.all("WITH RECURSIVE\
-                                    UNDER_ROLE(NAME,PARENT,DESCRIPTION,ID) AS (\
-                                        SELECT ACL_ROLES.NAME, 0, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID\
-                                            FROM ACL_USERROLES\
-                                            JOIN ACL_ROLES ON ACL_USERROLES.ROLEID = ACL_ROLES.ID\
-                                            WHERE USERID=:uid AND ACL_USERROLES.ACTIVE=1\
-                                        UNION ALL\
-                                        SELECT ACL_ROLES.NAME, UNDER_ROLE.PARENT + 1, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID\
-                                            FROM ACL_ROLES JOIN UNDER_ROLE ON ACL_ROLES.PARENT=UNDER_ROLE.ID\
-                                            WHERE ACL_ROLES.ACTIVE = 1\
-                                            ORDER BY 2 DESC\
-                                    )\
-                                SELECT DISTINCT ACL_PERMISSIONS.ID, ACL_PERMISSIONS.NAME, ACL_PERMISSIONS.DESCRIPTION\
-                                    FROM UNDER_ROLE\
-                                    JOIN ACL_ROLEPERMISSIONS ON UNDER_ROLE.ID = ACL_ROLEPERMISSIONS.ROLEID\
-                                    JOIN ACL_PERMISSIONS ON ACL_ROLEPERMISSIONS.PERMISSIONID = ACL_PERMISSIONS.ID;", {
+UNDER_ROLE(NAME, PARENT, DESCRIPTION, ID) AS(\
+    SELECT ACL_ROLES.NAME, 0, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID\ FROM ACL_USERROLES\ JOIN ACL_ROLES ON ACL_USERROLES.ROLEID = ACL_ROLES.ID\ WHERE USERID = : uid AND ACL_USERROLES.ACTIVE = 1\ UNION ALL\ SELECT ACL_ROLES.NAME, UNDER_ROLE.PARENT + 1, ACL_ROLES.DESCRIPTION, ACL_ROLES.ID\ FROM ACL_ROLES JOIN UNDER_ROLE ON ACL_ROLES.PARENT = UNDER_ROLE.ID\ WHERE ACL_ROLES.ACTIVE = 1\ ORDER BY 2 DESC\
+)\
+SELECT DISTINCT ACL_PERMISSIONS.ID, ACL_PERMISSIONS.NAME, ACL_PERMISSIONS.DESCRIPTION\
+FROM UNDER_ROLE\
+JOIN ACL_ROLEPERMISSIONS ON UNDER_ROLE.ID = ACL_ROLEPERMISSIONS.ROLEID\
+JOIN ACL_PERMISSIONS ON ACL_ROLEPERMISSIONS.PERMISSIONID = ACL_PERMISSIONS.ID;", {
                         ':uid': user.ID
                     }, function (error, rows) {
                         if (error == null) {
