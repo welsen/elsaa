@@ -80,9 +80,11 @@ function ProceddRolePermissionLinks() {
             }).prop('checked', linked).addClass('permission-role')));
         });
         $row.appendTo($('#rolePermissionsBody'));
+        $('.permission-role').prop('disabled', false);
     });
     $('.permission-role').change(function (e) {
         var $cb = $(e.currentTarget);
+        $('.permission-role').prop('disabled', true);
         // console.log($cb.is(':checked'), $cb.data('permissionId'), $cb.data('roleId'));
         AsyncRPC('/admin/roles/permissions/set', {
             permissionId: $cb.data('permissionId'),
